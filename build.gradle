@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+mainClassName = 'org.example.studentjournal.Main'  // Полный путь к классу с main()
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.firebirdsql.jdbc:jaybird:3.0.10'
+    implementation 'net.java.dev.jna:jna:5.13.0'
+    implementation 'org.slf4j:slf4j-simple:2.0.0'
+}
