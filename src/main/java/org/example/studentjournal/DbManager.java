@@ -6,12 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DbManager {
+    private final String url;
+    private final String user;
+    private final String password;
     private Connection connection;
 
+    private final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
+
+
     public DbManager(String url, String user, String password, boolean createIfNotExists) throws SQLException {
+        this.url = url;
+        this.user = user;
+        this.password = password;
+
         if (createIfNotExists) {
 //isql-fb
-
+//
 //CREATE DATABASE '/home/student/databases/studentjournal.fdb' USER 'sysdba' PASSWORD 'masterkey';
 //COMMIT;
 //EXIT;
@@ -122,6 +132,15 @@ public class DbManager {
         }
     }
 
+    public Connection getConnection() throws SQLException {
+        Connection conn = connectionHolder.get();
+        if (conn == null || conn.isClosed()) {
+            conn = DriverManager.getConnection(url, user, password);
+            connectionHolder.set(conn);
+        }
+        return conn;
+    }
+
     private boolean tableExists(String tableName) throws SQLException {
         String query = "SELECT 1 FROM RDB$RELATIONS WHERE RDB$RELATION_NAME = ?";
         try (PreparedStatement ps = connection.prepareStatement(query)) {
@@ -165,7 +184,8 @@ public class DbManager {
     }
 
     public void insertGroup(String name, String curriculum, String teacher, String subjects) throws SQLException {
-        String sql = "INSERT INTO groups (id, name, curriculum, teacher, subjects) VALUES (NEXT VALUE FOR GEN_GROUP_ID, ?, ?, ?, ?)";        executeUpdate(sql, name, curriculum, teacher, subjects);
+        String sql = "INSERT INTO GROUPS (ID, name, curriculum, teacher, subjects) VALUES (NEXT VALUE FOR GEN_GROUP_ID, ?, ?, ?, ?)";
+        executeUpdate(sql, name, curriculum, teacher, subjects);
     }
 
     public List<String> getGroups() throws SQLException {
@@ -235,7 +255,4 @@ public class DbManager {
         }
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
 }
