@@ -1,32 +1,60 @@
 package org.example.studentjournal;
 
-import java.sql.*;
+import javax.swing.*;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Scanner;
 
-// Основной класс (упрощенный консольный интерфейс для журнала студентов)
 public class Main {
     public static void main(String[] args) {
-        try {
-            Config config = new Config("settings.xml");
-//             System.out.println("JDBC URL: " + config.jdbcUrl);
-//             System.out.println("User: " + config.jdbcUser);
-//             System.out.println("Password: " + config.jdbcPassword);
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Выберите интерфейс:");
+        System.out.println("1. Графический интерфейс (GUI)");
+        System.out.println("2. Консольный интерфейс");
 
+        int interfaceChoice;
+        try {
+            interfaceChoice = scanner.nextInt();
+            scanner.nextLine(); // Сбрасываем буфер
         } catch (Exception e) {
-            System.err.println("Ошибка при загрузке конфигурации: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println("Неверный ввод. По умолчанию выбирается консольный интерфейс.");
+            interfaceChoice = 2;
         }
 
+        if (interfaceChoice == 1) {
+            // Запуск графического интерфейса
+            runGUI();
+        } else {
+            // Запуск консольного интерфейса
+            runConsole(scanner);
+        }
+    }
+
+    private static void runGUI() {
+        try {
+            Config config = new Config("settings.xml");
+            DbManager dbManager = new DbManager(config.jdbcUrl, config.jdbcUser, config.jdbcPassword, true);
+
+            SwingUtilities.invokeLater(() -> {
+                MainFrame frame = new MainFrame(dbManager);
+                frame.setVisible(true);
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Ошибка при запуске GUI: " + e.getMessage());
+        }
+    }
+
+    private static void runConsole(Scanner scanner) {
         DbManager dbManager = null;
-        Scanner scanner = null;
 
         try {
             Config config = new Config("settings.xml");
             dbManager = new DbManager(config.jdbcUrl, config.jdbcUser, config.jdbcPassword, true);
-            scanner = new Scanner(System.in);
 
-            System.out.println("Приложение запущено!");
+            System.out.println("Приложение запущено в консольном режиме!");
 
             while (true) {
                 System.out.println("\nВыберите действие:");
@@ -42,7 +70,6 @@ public class Main {
                 System.out.println("10. Показать посещаемость");
                 System.out.println("0. Выход");
 
-                // Читаем выбор
                 if (!scanner.hasNextInt()) {
                     System.out.println("Неверный ввод. Введите число.");
                     scanner.next(); // Сбрасываем неверный ввод
@@ -66,7 +93,8 @@ public class Main {
                         break;
                     case 4:
                         List<String> groups = dbManager.getGroups();
-                        groups.forEach(System.out::println); break;
+                        groups.forEach(System.out::println);
+                        break;
                     case 5:
                         addSubject(scanner, dbManager);
                         break;
@@ -97,7 +125,6 @@ public class Main {
             System.err.println("Ошибка: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            // Закрываем ресурсы
             if (scanner != null) scanner.close();
             if (dbManager != null) dbManager.close();
             System.out.println("Приложение завершено.");

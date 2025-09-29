@@ -213,36 +213,47 @@ public class DbManager {
     }
 
     public void insertGrade(long studentId, long subjectId, String type, int value, LocalDate date) throws SQLException {
-        String sql = "INSERT INTO grades (id, student_id, subject_id, type, value, date) VALUES (NEXT VALUE FOR GEN_GRADE_ID, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO grades (id, student_id, subject_id, grade_type, grade_value, grade_date) VALUES (NEXT VALUE FOR GEN_GRADE_ID, ?, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         executeUpdate(sql, studentId, subjectId, type, value, sqlDate);
     }
 
     public List<String> getGrades() throws SQLException {
         List<String> list = new ArrayList<>();
-        try (ResultSet rs = executeQuery("SELECT g.id, s.full_name, sub.name, g.value, g.date FROM grades g JOIN students s ON g.student_id = s.id JOIN subjects sub ON g.subject_id = sub.id")) {
+        try (ResultSet rs = executeQuery("SELECT g.id, s.full_name, sub.name, g.grade_value, g.grade_date FROM grades g JOIN students s ON g.student_id = s.id JOIN subjects sub ON g.subject_id = sub.id")) {
             while (rs.next()) {
-                list.add(rs.getInt("id") + " - " + rs.getString("full_name") + " (" + rs.getString("name") + ")");
+                list.add(rs.getInt("id") + " - " + rs.getString("full_name") + " (" + rs.getString("name") + ") - оценка: " + rs.getInt("grade_value") + " от " + rs.getDate("grade_date"));
             }
         }
         return list;
     }
 
     public void insertAttendance(long studentId, long subjectId, LocalDate date, boolean isPresent) throws SQLException {
-        String sql = "INSERT INTO attendance (id, student_id, subject_id, date, is_present) VALUES (NEXT VALUE FOR GEN_ATTENDANCE_ID, ?, ?, ?, ?)";
+        String sql = "INSERT INTO attendance (id, student_id, subject_id, attendance_date, is_present) VALUES (NEXT VALUE FOR GEN_ATTENDANCE_ID, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         executeUpdate(sql, studentId, subjectId, sqlDate, isPresent ? 1 : 0);
     }
 
     public List<String> getAttendance() throws SQLException {
         List<String> list = new ArrayList<>();
-        try (ResultSet rs = executeQuery("SELECT a.id, s.full_name, sub.name, a.date, a.is_present FROM attendance a JOIN students s OM a.student_id = s.id JOIN subjects sub ON a.subject_id = sub.id")) {
+        String sql = "SELECT a.id, s.full_name, sub.name, a.attendance_date, a.is_present " +
+                "FROM attendance a " +
+                "JOIN students s ON a.student_id = s.id " +
+                "JOIN subjects sub ON a.subject_id = sub.id";
+
+        try (ResultSet rs = executeQuery(sql)) {
             while (rs.next()) {
-                list.add(rs.getInt("id") + " - " + rs.getString("full_speech") + " (" + rs.getString("name") + ") - присутствие: " + (rs.getInt("is_present") == 1 ? "да" : "нет"));
+                int id = rs.getInt("id");
+                String fullName = rs.getString("full_name");
+                String subjectName = rs.getString("name");
+                boolean isPresent = rs.getInt("is_present") == 1;
+
+                list.add(id + " - " + fullName + " (" + subjectName + ") - присутствие: " + (isPresent ? "да" : "нет"));
             }
         }
         return list;
     }
+
 
     public void close() {
         if (connection != null) {
