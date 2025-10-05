@@ -1,5 +1,6 @@
 package org.example.studentjournal;
 
+import com.toedter.calendar.JCalendar;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
@@ -201,10 +202,8 @@ public class MainFrame extends JFrame {
         JTextField nameField = new JTextField();
         JTextField teacherField = new JTextField();
 
-        // Компоненты для выбора дат расписания
-        JSpinner dateSpinner = new JSpinner(new DaySpinnerDateModel());
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
-        dateSpinner.setEditor(dateEditor);
+        // Компоненты для выбора дат расписания с использованием календаря
+        JCalendar calendar = new JCalendar();
         JButton addDateButton = new JButton("Добавить дату");
         DefaultListModel<String> dateListModel = new DefaultListModel<>();
         JList<String> dateList = new JList<>(dateListModel);
@@ -213,23 +212,28 @@ public class MainFrame extends JFrame {
         JButton removeDateButton = new JButton("Удалить выбранную дату");
 
         // Панель для дат
-        JPanel datePanel = new JPanel(new BorderLayout());
+        JPanel datePanelContainer = new JPanel(new BorderLayout());
         JPanel topDatePanel = new JPanel(new FlowLayout());
-        topDatePanel.add(dateSpinner);
+        topDatePanel.add(calendar); // Добавляем календарь
         topDatePanel.add(addDateButton);
-        datePanel.add(topDatePanel, BorderLayout.NORTH);
-        datePanel.add(dateScroll, BorderLayout.CENTER);
-        datePanel.add(removeDateButton, BorderLayout.SOUTH);
+        datePanelContainer.add(topDatePanel, BorderLayout.NORTH);
+        datePanelContainer.add(dateScroll, BorderLayout.CENTER);
+        datePanelContainer.add(removeDateButton, BorderLayout.SOUTH);
 
         // События кнопок
         addDateButton.addActionListener(e -> {
-            Date selectedDateUtil = (Date) dateSpinner.getValue();
-            LocalDate selectedDate = LocalDate.ofInstant(selectedDateUtil.toInstant(), ZoneId.systemDefault());
-            String dateStr = selectedDate.toString();
-            if (!dateListModel.contains(dateStr)) {
-                dateListModel.addElement(dateStr);
+            // Получаем выбранную дату из календаря
+            Date selectedDateUtil = calendar.getDate();
+            if (selectedDateUtil != null) {
+                LocalDate selectedDate = selectedDateUtil.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                String dateStr = selectedDate.toString();
+                if (!dateListModel.contains(dateStr)) {
+                    dateListModel.addElement(dateStr);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Эта дата уже добавлена.");
+                }
             } else {
-                JOptionPane.showMessageDialog(this, "Эта дата уже добавлена.");
+                JOptionPane.showMessageDialog(this, "Выберите дату в календаре.");
             }
         });
 
@@ -245,7 +249,7 @@ public class MainFrame extends JFrame {
         Object[] message = {
                 "Название предмета:", nameField,
                 "Преподаватель:", teacherField,
-                "Расписание (выберите даты):", datePanel
+                "Расписание (выберите даты):", datePanelContainer
         };
 
         int option = JOptionPane.showConfirmDialog(this, message, "Добавить предмет", JOptionPane.OK_CANCEL_OPTION);

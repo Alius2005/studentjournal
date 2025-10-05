@@ -13,7 +13,6 @@ public class DbManager {
 
     private final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
 
-
     public DbManager(String url, String user, String password, boolean createIfNotExists) throws SQLException {
         this.url = url;
         this.user = user;

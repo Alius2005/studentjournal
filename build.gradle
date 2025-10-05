@@ -13,4 +13,5 @@ dependencies {
     implementation 'org.firebirdsql.jdbc:jaybird:3.0.10'
     implementation 'net.java.dev.jna:jna:5.13.0'
     implementation 'org.slf4j:slf4j-simple:2.0.0'
+    implementation 'com.toedter:jcalendar:1.4'
 }
