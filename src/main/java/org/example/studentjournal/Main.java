@@ -72,11 +72,11 @@ public class Main {
 
                 if (!scanner.hasNextInt()) {
                     System.out.println("Неверный ввод. Введите число.");
-                    scanner.next(); // Сбрасываем неверный ввод
+                    scanner.next();
                     continue;
                 }
                 int choice = scanner.nextInt();
-                scanner.nextLine(); // Сбрасываем буфер после nextInt
+                scanner.nextLine();
 
                 if (choice == 0) break;
 
@@ -85,35 +85,35 @@ public class Main {
                         addStudent(scanner, dbManager);
                         break;
                     case 2:
-                        List<String> students = dbManager.getStudents();
+                        List<DbManager.Student> students = dbManager.getStudents();
                         students.forEach(System.out::println);
                         break;
                     case 3:
                         addGroup(scanner, dbManager);
                         break;
                     case 4:
-                        List<String> groups = dbManager.getGroups();
+                        List<DbManager.Group> groups = dbManager.getGroups();
                         groups.forEach(System.out::println);
                         break;
                     case 5:
                         addSubject(scanner, dbManager);
                         break;
                     case 6:
-                        List<String> subjects = dbManager.getSubjects();
+                        List<DbManager.Subject> subjects = dbManager.getSubjects();
                         subjects.forEach(System.out::println);
                         break;
                     case 7:
                         addGrade(scanner, dbManager);
                         break;
                     case 8:
-                        List<String> grades = dbManager.getGrades();
+                        List<DbManager.Grade> grades = dbManager.getGrades();
                         grades.forEach(System.out::println);
                         break;
                     case 9:
                         addAttendance(scanner, dbManager);
                         break;
                     case 10:
-                        List<String> attendance = dbManager.getAttendance();
+                        List<DbManager.Attendance> attendance = dbManager.getAttendance();
                         attendance.forEach(System.out::println);
                         break;
                     default:

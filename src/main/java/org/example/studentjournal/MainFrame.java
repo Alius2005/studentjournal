@@ -8,10 +8,13 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Calendar;
+import javax.swing.JTable;
+import javax.swing.JScrollPane;
+import javax.swing.JOptionPane;
+import java.util.stream.Collectors;  // Для Collectors
+import com.toedter.calendar.JDateChooser;  // Для JDateChooser
 
-// Добавляем кастомную модель для JSpinner, которая всегда меняет день при перелистывании
 class DaySpinnerDateModel extends SpinnerDateModel {
     public DaySpinnerDateModel() {
         super();
@@ -99,18 +102,6 @@ public class MainFrame extends JFrame {
         btnAddAttendance.addActionListener(e -> addAttendanceGroupDialog());
     }
 
-    private void showStudents() {
-        try {
-            List<String> students = dbManager.getStudents();
-            displayArea.setText("");
-            for (String s : students) {
-                displayArea.append(s + "\n");
-            }
-        } catch (SQLException ex) {
-            showError(ex);
-        }
-    }
-
     private void addStudentDialog() {
         JTextField fullNameField = new JTextField();
         JSpinner birthDateSpinner = new JSpinner(new DaySpinnerDateModel());
@@ -144,18 +135,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void showGroups() {
-        try {
-            List<String> groups = dbManager.getGroups();
-            displayArea.setText("");
-            for (String s : groups) {
-                displayArea.append(s + "\n");
-            }
-        } catch (SQLException ex) {
-            showError(ex);
-        }
-    }
-
     private void addGroupDialog() {
         JTextField nameField = new JTextField();
         JTextField curriculumField = new JTextField();
@@ -186,23 +165,10 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void showSubjects() {
-        try {
-            List<String> subjects = dbManager.getSubjects();
-            displayArea.setText("");
-            for (String s : subjects) {
-                displayArea.append(s + "\n");
-            }
-        } catch (SQLException ex) {
-            showError(ex);
-        }
-    }
-
     private void addSubjectDialog() {
         JTextField nameField = new JTextField();
         JTextField teacherField = new JTextField();
 
-        // Компоненты для выбора дат расписания с использованием календаря
         JCalendar calendar = new JCalendar();
         JButton addDateButton = new JButton("Добавить дату");
         DefaultListModel<String> dateListModel = new DefaultListModel<>();
@@ -211,18 +177,15 @@ public class MainFrame extends JFrame {
         dateScroll.setPreferredSize(new Dimension(200, 100));
         JButton removeDateButton = new JButton("Удалить выбранную дату");
 
-        // Панель для дат
         JPanel datePanelContainer = new JPanel(new BorderLayout());
         JPanel topDatePanel = new JPanel(new FlowLayout());
-        topDatePanel.add(calendar); // Добавляем календарь
+        topDatePanel.add(calendar);
         topDatePanel.add(addDateButton);
         datePanelContainer.add(topDatePanel, BorderLayout.NORTH);
         datePanelContainer.add(dateScroll, BorderLayout.CENTER);
         datePanelContainer.add(removeDateButton, BorderLayout.SOUTH);
 
-        // События кнопок
         addDateButton.addActionListener(e -> {
-            // Получаем выбранную дату из календаря
             Date selectedDateUtil = calendar.getDate();
             if (selectedDateUtil != null) {
                 LocalDate selectedDate = selectedDateUtil.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -269,18 +232,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void showGrades() {
-        try {
-            List<String> grades = dbManager.getGrades();
-            displayArea.setText("");
-            for (String s : grades) {
-                displayArea.append(s + "\n");
-            }
-        } catch (SQLException ex) {
-            showError(ex);
-        }
-    }
-
     private void addGradeDialog() {
         JTextField studentIdField = new JTextField();
         JTextField subjectIdField = new JTextField();
@@ -317,28 +268,15 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void showAttendance() {
-        try {
-            List<String> attendance = dbManager.getAttendance();
-            displayArea.setText("");
-            for (String s : attendance) {
-                displayArea.append(s + "\n");
-            }
-        } catch (SQLException ex) {
-            showError(ex);
-        }
-    }
-
     private void addAttendanceGroupDialog() {
         JTextField groupField = new JTextField();
-        JSpinner dateSpinner = new JSpinner(new DaySpinnerDateModel());
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
-        dateSpinner.setEditor(dateEditor);
+        JDateChooser dateChooser = new JDateChooser();
+        dateChooser.setDateFormatString("yyyy-MM-dd");
         JTextField subjectIdField = new JTextField();
 
         Object[] inputMessage = {
                 "Группа:", groupField,
-                "Дата:", dateSpinner,
+                "Дата:", dateChooser,
                 "ID предмета:", subjectIdField
         };
 
@@ -348,21 +286,18 @@ public class MainFrame extends JFrame {
 
         try {
             String group = groupField.getText().trim();
-            Date dateUtil = (Date) dateSpinner.getValue();
-            LocalDate date = LocalDate.ofInstant(dateUtil.toInstant(), ZoneId.systemDefault());
+            Date dateUtil = dateChooser.getDate();
+            if (dateUtil == null) {
+                JOptionPane.showMessageDialog(this, "Выберите дату.");
+                return;
+            }
+            LocalDate date = dateUtil.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             long subjectId = Long.parseLong(subjectIdField.getText().trim());
 
-            List<String> allStudents = dbManager.getStudents();
-            List<Student> groupStudents = new ArrayList<>();
-
-            for (String s : allStudents) {
-                String[] parts = s.split(" ");
-                if (parts.length > 3 && parts[3].equals(group)) {
-                    long id = Long.parseLong(parts[0].replace("ID:", ""));
-                    String name = parts[1] + " " + parts[2];
-                    groupStudents.add(new Student(id, name));
-                }
-            }
+            List<DbManager.Student> allStudents = dbManager.getStudents();
+            List<DbManager.Student> groupStudents = allStudents.stream()
+                    .filter(s -> s.getGroupName().equals(group))
+                    .collect(Collectors.toList());
 
             if (groupStudents.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "В группе нет студентов.");
@@ -373,9 +308,9 @@ public class MainFrame extends JFrame {
             Object[][] data = new Object[groupStudents.size()][3];
 
             for (int i = 0; i < groupStudents.size(); i++) {
-                Student st = groupStudents.get(i);
-                data[i][0] = st.id;
-                data[i][1] = st.name;
+                DbManager.Student st = groupStudents.get(i);
+                data[i][0] = st.getId();
+                data[i][1] = st.getFullName();
                 data[i][2] = false;
             }
 
@@ -399,13 +334,136 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private static class Student {
-        long id;
-        String name;
+    private void showStudents() {
+        try {
+            List<DbManager.Student> students = dbManager.getStudents();
+            if (students.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет данных для отображения.");
+                return;
+            }
 
-        Student(long id, String name) {
-            this.id = id;
-            this.name = name;
+            String[] columnNames = {"ID", "ФИО", "Группа"};
+            Object[][] data = new Object[students.size()][3];
+
+            for (int i = 0; i < students.size(); i++) {
+                DbManager.Student s = students.get(i);
+                data[i][0] = s.getId();
+                data[i][1] = s.getFullName();
+                data[i][2] = s.getGroupName();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            JOptionPane.showMessageDialog(this, scrollPane, "Студенты", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void showGroups() {
+        try {
+            List<DbManager.Group> groups = dbManager.getGroups();
+            if (groups.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет данных для отображения.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Название"};
+            Object[][] data = new Object[groups.size()][2];
+
+            for (int i = 0; i < groups.size(); i++) {
+                DbManager.Group g = groups.get(i);
+                data[i][0] = g.getId();
+                data[i][1] = g.getName();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            JOptionPane.showMessageDialog(this, scrollPane, "Группы", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void showSubjects() {
+        try {
+            List<DbManager.Subject> subjects = dbManager.getSubjects();
+            if (subjects.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет данных для отображения.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Название"};
+            Object[][] data = new Object[subjects.size()][2];
+
+            for (int i = 0; i < subjects.size(); i++) {
+                DbManager.Subject s = subjects.get(i);
+                data[i][0] = s.getId();
+                data[i][1] = s.getName();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            JOptionPane.showMessageDialog(this, scrollPane, "Предметы", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void showGrades() {
+        try {
+            List<DbManager.Grade> grades = dbManager.getGrades();
+            if (grades.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет данных для отображения.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Студент", "Предмет", "Тип", "Значение", "Дата"};
+            Object[][] data = new Object[grades.size()][6];
+
+            for (int i = 0; i < grades.size(); i++) {
+                DbManager.Grade g = grades.get(i);
+                data[i][0] = g.getId();
+                data[i][1] = g.getStudentName();
+                data[i][2] = g.getSubjectName();
+                data[i][3] = g.getGradeType();
+                data[i][4] = g.getGradeValue();
+                data[i][5] = g.getGradeDate();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            JOptionPane.showMessageDialog(this, scrollPane, "Оценки", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void showAttendance() {
+        try {
+            List<DbManager.Attendance> attendance = dbManager.getAttendance();
+            if (attendance.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет данных для отображения.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Студент", "Предмет", "Дата", "Присутствие"};
+            Object[][] data = new Object[attendance.size()][5];
+
+            for (int i = 0; i < attendance.size(); i++) {
+                DbManager.Attendance a = attendance.get(i);
+                data[i][0] = a.getId();
+                data[i][1] = a.getStudentName();
+                data[i][2] = a.getSubjectName();
+                data[i][3] = a.getAttendanceDate();
+                data[i][4] = a.isPresent() ? "Да" : "Нет";
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            JOptionPane.showMessageDialog(this, scrollPane, "Посещаемость", JOptionPane.INFORMATION_MESSAGE);
+        } catch (SQLException ex) {
+            showError(ex);
         }
     }
 

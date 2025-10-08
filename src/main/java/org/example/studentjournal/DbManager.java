@@ -11,6 +11,116 @@ public class DbManager {
     private final String password;
     private Connection connection;
 
+    public class Student {
+        private int id;
+        private String fullName;
+        private LocalDate birthDate;
+        private String groupName;
+        private String contact;
+
+        public Student(int id, String fullName, LocalDate birthDate, String groupName, String contact) {
+            this.id = id;
+            this.fullName = fullName;
+            this.birthDate = birthDate;
+            this.groupName = groupName;
+            this.contact = contact;
+        }
+
+        public int getId() { return id; }
+        public String getFullName() { return fullName; }
+        public LocalDate getBirthDate() { return birthDate; }
+        public String getGroupName() { return groupName; }
+        public String getContact() { return contact; }
+    }
+
+    public class Group {
+        private int id;
+        private String name;
+        private String curriculum;
+        private String teacher;
+        private String subjects;
+
+        public Group(int id, String name, String curriculum, String teacher, String subjects) {
+            this.id = id;
+            this.name = name;
+            this.curriculum = curriculum;
+            this.teacher = teacher;
+            this.subjects = subjects;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+        public String getCurriculum() { return curriculum; }
+        public String getTeacher() { return teacher; }
+        public String getSubjects() { return subjects; }
+    }
+
+    public class Subject {
+        private int id;
+        private String name;
+        private String teacher;
+        private String schedule;
+
+        public Subject(int id, String name, String teacher, String schedule) {
+            this.id = id;
+            this.name = name;
+            this.teacher = teacher;
+            this.schedule = schedule;
+        }
+
+        public int getId() { return id; }
+        public String getName() { return name; }
+        public String getTeacher() { return teacher; }
+        public String getSchedule() { return schedule; }
+    }
+
+    public class Grade {
+        private int id;
+        private String studentName;
+        private String subjectName;
+        private String gradeType;
+        private int gradeValue;
+        private LocalDate gradeDate;
+
+        public Grade(int id, String studentName, String subjectName, String gradeType, int gradeValue, LocalDate gradeDate) {
+            this.id = id;
+            this.studentName = studentName;
+            this.subjectName = subjectName;
+            this.gradeType = gradeType;
+            this.gradeValue = gradeValue;
+            this.gradeDate = gradeDate;
+        }
+
+        public int getId() { return id; }
+        public String getStudentName() { return studentName; }
+        public String getSubjectName() { return subjectName; }
+        public String getGradeType() {return gradeType; }
+        public int getGradeValue() { return gradeValue; }
+        public LocalDate getGradeDate() { return gradeDate; }
+    }
+
+    public class Attendance {
+        private int id;
+        private String studentName;
+        private String subjectName;
+        private LocalDate attendanceDate;
+        private boolean isPresent;
+
+        public Attendance(int id, String studentName, String subjectName, LocalDate attendanceDate, boolean isPresent) {
+            this.id = id;
+            this.studentName = studentName;
+            this.subjectName = subjectName;
+            this.attendanceDate = attendanceDate;
+            this.isPresent = isPresent;
+        }
+
+        public int getId() { return id; }
+        public String getStudentName() { return studentName; }
+        public String getSubjectName() { return subjectName; }
+        public LocalDate getAttendanceDate() { return attendanceDate; }
+        public boolean isPresent() { return isPresent; }
+    }
+
     private final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
 
     public DbManager(String url, String user, String password, boolean createIfNotExists) throws SQLException {
@@ -171,70 +281,93 @@ public class DbManager {
         java.sql.Date sqlDate = java.sql.Date.valueOf(birthDate);
         executeUpdate(sql, fullName, sqlDate, groupName, contact);
     }
-
-    public List<String> getStudents() throws SQLException {
-        List<String> list = new ArrayList<>();
-        try (ResultSet rs = executeQuery("SELECT * FROM students")) {
-            while (rs.next()) {
-                list.add(rs.getInt("id") + " - " + rs.getString("full_name") + " - группа: " + rs.getString("group_name"));
-            }
-        }
-        return list;
-    }
-
     public void insertGroup(String name, String curriculum, String teacher, String subjects) throws SQLException {
         String sql = "INSERT INTO GROUPS (ID, name, curriculum, teacher, subjects) VALUES (NEXT VALUE FOR GEN_GROUP_ID, ?, ?, ?, ?)";
         executeUpdate(sql, name, curriculum, teacher, subjects);
     }
-
-    public List<String> getGroups() throws SQLException {
-        List<String> list = new ArrayList<>();
-        try (ResultSet rs = executeQuery("SELECT * FROM groups")) {
-            while (rs.next()) {
-                list.add(rs.getInt("id") + " - " + rs.getString("name") + " - преподаватель: " + rs.getString("teacher"));
-            }
-        }
-        return list;
-    }
-
     public void insertSubject(String name, String teacher, String schedule) throws SQLException {
         String sql = "INSERT INTO subjects (id, name, teacher, schedule) VALUES (NEXT VALUE FOR GEN_SUBJECT_ID, ?, ?, ?)";        executeUpdate(sql,name, teacher, schedule);
     }
-
-    public List<String> getSubjects() throws SQLException {
-        List<String> list = new ArrayList<>();
-        try (ResultSet rs = executeQuery("SELECT * FROM subjects")) {
-            while (rs.next()) {
-                list.add(rs.getInt("id") + " - " + rs.getString("name") + " - преподаватель: " + rs.getString("teacher"));
-            }
-        }
-        return list;
-    }
-
     public void insertGrade(long studentId, long subjectId, String type, int value, LocalDate date) throws SQLException {
         String sql = "INSERT INTO grades (id, student_id, subject_id, grade_type, grade_value, grade_date) VALUES (NEXT VALUE FOR GEN_GRADE_ID, ?, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         executeUpdate(sql, studentId, subjectId, type, value, sqlDate);
     }
-
-    public List<String> getGrades() throws SQLException {
-        List<String> list = new ArrayList<>();
-        try (ResultSet rs = executeQuery("SELECT g.id, s.full_name, sub.name, g.grade_value, g.grade_date FROM grades g JOIN students s ON g.student_id = s.id JOIN subjects sub ON g.subject_id = sub.id")) {
-            while (rs.next()) {
-                list.add(rs.getInt("id") + " - " + rs.getString("full_name") + " (" + rs.getString("name") + ") - оценка: " + rs.getInt("grade_value") + " от " + rs.getDate("grade_date"));
-            }
-        }
-        return list;
-    }
-
     public void insertAttendance(long studentId, long subjectId, LocalDate date, boolean isPresent) throws SQLException {
         String sql = "INSERT INTO attendance (id, student_id, subject_id, attendance_date, is_present) VALUES (NEXT VALUE FOR GEN_ATTENDANCE_ID, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         executeUpdate(sql, studentId, subjectId, sqlDate, isPresent ? 1 : 0);
     }
 
-    public List<String> getAttendance() throws SQLException {
-        List<String> list = new ArrayList<>();
+    public List<Student> getStudents() throws SQLException {
+        List<Student> list = new ArrayList<>();
+        try (ResultSet rs = executeQuery("SELECT * FROM students")) {
+            while (rs.next()) {
+                list.add(new Student(
+                        rs.getInt("id"),
+                        rs.getString("full_name"),
+                        rs.getDate("birth_date").toLocalDate(),
+                        rs.getString("group_name"),
+                        rs.getString("contact")
+                ));
+            }
+        }
+        return list;
+    }
+
+    public List<Group> getGroups() throws SQLException {
+        List<Group> list = new ArrayList<>();
+        try (ResultSet rs = executeQuery("SELECT * FROM groups")) {
+            while (rs.next()) {
+                list.add(new Group(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("curriculum"),
+                        rs.getString("teacher"),
+                        rs.getString("subjects")
+                ));
+            }
+        }
+        return list;
+    }
+
+    public List<Subject> getSubjects() throws SQLException {
+        List<Subject> list = new ArrayList<>();
+        try (ResultSet rs = executeQuery("SELECT * FROM subjects")) {
+            while (rs.next()) {
+                list.add(new Subject(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("teacher"),
+                        rs.getString("schedule")
+                ));
+            }
+        }
+        return list;
+    }
+
+    public List<Grade> getGrades() throws SQLException {
+        List<Grade> list = new ArrayList<>();
+        try (ResultSet rs = executeQuery(
+            "SELECT g.id, s.full_name, sub.name, g.grade_type, g.grade_value, g.grade_date FROM grades g " +
+                "JOIN students s ON g.student_id = s.id " +
+                "JOIN subjects sub ON g.subject_id = sub.id")) {
+            while (rs.next()) {
+                list.add(new Grade(
+                        rs.getInt("id"),
+                        rs.getString("full_name"),
+                        rs.getString("name"),
+                        rs.getString("grade_type"),
+                        rs.getInt("grade_value"),
+                        rs.getDate("grade_date").toLocalDate()
+                ));
+            }
+        }
+        return list;
+    }
+
+    public List<Attendance> getAttendance() throws SQLException {
+        List<Attendance> list = new ArrayList<>();
         String sql = "SELECT a.id, s.full_name, sub.name, a.attendance_date, a.is_present " +
                 "FROM attendance a " +
                 "JOIN students s ON a.student_id = s.id " +
@@ -242,17 +375,17 @@ public class DbManager {
 
         try (ResultSet rs = executeQuery(sql)) {
             while (rs.next()) {
-                int id = rs.getInt("id");
-                String fullName = rs.getString("full_name");
-                String subjectName = rs.getString("name");
-                boolean isPresent = rs.getInt("is_present") == 1;
-
-                list.add(id + " - " + fullName + " (" + subjectName + ") - присутствие: " + (isPresent ? "да" : "нет"));
+                list.add(new Attendance(
+                        rs.getInt("id"),
+                        rs.getString("full_name"),
+                        rs.getString("name"),
+                        rs.getDate("attendance_date").toLocalDate(),
+                        rs.getInt("is_present") == 1
+                ));
             }
         }
         return list;
     }
-
 
     public void close() {
         if (connection != null) {
