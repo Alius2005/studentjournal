@@ -32,7 +32,6 @@ public class DbManager {
         public String getGroupName() { return groupName; }
         public String getContact() { return contact; }
     }
-
     public class Group {
         private int id;
         private String name;
@@ -54,7 +53,6 @@ public class DbManager {
         public String getTeacher() { return teacher; }
         public String getSubjects() { return subjects; }
     }
-
     public class Subject {
         private int id;
         private String name;
@@ -73,7 +71,6 @@ public class DbManager {
         public String getTeacher() { return teacher; }
         public String getSchedule() { return schedule; }
     }
-
     public class Grade {
         private int id;
         private String studentName;
@@ -98,7 +95,6 @@ public class DbManager {
         public int getGradeValue() { return gradeValue; }
         public LocalDate getGradeDate() { return gradeDate; }
     }
-
     public class Attendance {
         private int id;
         private String studentName;
@@ -276,6 +272,30 @@ public class DbManager {
         return stmt.executeUpdate();
     }
 
+    public void updateStudent(int id, String fullName, LocalDate birthDate, String groupName, String contact) throws SQLException {
+        String sql = "UPDATE students SET full_name = ?, birth_date = ?, group_name = ?, contact = ? WHERE id = ?";
+        java.sql.Date sqlDate = java.sql.Date.valueOf(birthDate);
+        executeUpdate(sql, fullName, sqlDate, groupName, contact, id);
+    }
+    public void updateGroup(int id, String name, String curriculum, String teacher, String subjects) throws SQLException {
+        String sql = "UPDATE groups SET name = ?, curriculum = ?, teacher = ?, subjects = ? WHERE id = ?";
+        executeUpdate(sql, name, curriculum, teacher, subjects, id);
+    }
+    public void updateSubject(int id, String name, String teacher, String schedule) throws SQLException {
+        String sql = "UPDATE subjects SET name = ?, teacher = ?, schedule = ? WHERE id = ?";
+        executeUpdate(sql, name, teacher, schedule, id);
+    }
+    public void updateGrade(int id, int studentId, int subjectId, String gradeType, int gradeValue, LocalDate gradeDate) throws SQLException {
+        String sql = "UPDATE grades SET student_id = ?, subject_id = ?, grade_type = ?, grade_value = ?, grade_date = ? WHERE id = ?";
+        java.sql.Date sqlDate = java.sql.Date.valueOf(gradeDate);
+        executeUpdate(sql, studentId, subjectId, gradeType, gradeValue, sqlDate, id);
+    }
+    public void updateAttendance(int id, int studentId, int subjectId, LocalDate attendanceDate, boolean isPresent) throws SQLException {
+        String sql = "UPDATE attendance SET student_id = ?, subject_id = ?, attendance_date = ?, is_present = ? WHERE id = ?";
+        java.sql.Date sqlDate = java.sql.Date.valueOf(attendanceDate);
+        executeUpdate(sql, studentId, subjectId, sqlDate, isPresent ? 1 : 0, id);
+    }
+
     public void insertStudent(String fullName, LocalDate birthDate, String groupName, String contact) throws SQLException {
         String sql = "INSERT INTO students (id, full_name, birth_date, group_name, contact) VALUES (NEXT VALUE FOR GEN_STUDENT_ID, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(birthDate);
@@ -314,7 +334,6 @@ public class DbManager {
         }
         return list;
     }
-
     public List<Group> getGroups() throws SQLException {
         List<Group> list = new ArrayList<>();
         try (ResultSet rs = executeQuery("SELECT * FROM groups")) {
@@ -330,7 +349,6 @@ public class DbManager {
         }
         return list;
     }
-
     public List<Subject> getSubjects() throws SQLException {
         List<Subject> list = new ArrayList<>();
         try (ResultSet rs = executeQuery("SELECT * FROM subjects")) {
@@ -345,7 +363,6 @@ public class DbManager {
         }
         return list;
     }
-
     public List<Grade> getGrades() throws SQLException {
         List<Grade> list = new ArrayList<>();
         try (ResultSet rs = executeQuery(
@@ -365,7 +382,6 @@ public class DbManager {
         }
         return list;
     }
-
     public List<Attendance> getAttendance() throws SQLException {
         List<Attendance> list = new ArrayList<>();
         String sql = "SELECT a.id, s.full_name, sub.name, a.attendance_date, a.is_present " +
