@@ -156,8 +156,13 @@ public class DbManager {
             try { st.executeUpdate("CREATE GENERATOR GEN_ATTENDANCE_ID"); } catch (SQLException e) {
                 if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
             }
+            try { st.executeUpdate("CREATE GENERATOR GEN_USER_ID"); } catch (SQLException e) {
+                if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
+            }
+            try { st.executeUpdate("CREATE GENERATOR GEN_LESSON_ID"); } catch (SQLException e) {
+                if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
+            }
 
-            // Создаем таблицу students
             try {
                 st.executeUpdate(
                         "CREATE TABLE students (" +
@@ -171,7 +176,6 @@ public class DbManager {
                 if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
             }
 
-            // Создаем таблицу groups
             try {
                 st.executeUpdate(
                         "CREATE TABLE groups (" +
@@ -185,7 +189,6 @@ public class DbManager {
                 if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
             }
 
-            // Создаем таблицу subjects
             try {
                 st.executeUpdate(
                         "CREATE TABLE subjects (" +
@@ -198,7 +201,6 @@ public class DbManager {
                 if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
             }
 
-            // Создаем таблицу grades
             try {
                 st.executeUpdate(
                         "CREATE TABLE grades (" +
@@ -216,16 +218,48 @@ public class DbManager {
                 if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
             }
 
-            // Создаем таблицу attendance
             try {
                 st.executeUpdate(
                         "CREATE TABLE attendance (" +
                                 "id INTEGER NOT NULL PRIMARY KEY, " +
                                 "student_id INTEGER, " +
-                                "subject_id INTEGER, " +
-                                "attendance_date DATE, " +
+                                "lesson_id INTEGER NOT NULL, " +
                                 "is_present SMALLINT, " +
                                 "FOREIGN KEY (student_id) REFERENCES students(id), " +
+                                "FOREIGN KEY (lesson_id) REFERENCES lessons(id)" +
+                                ")"
+                );
+            } catch (SQLException e) {
+                if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
+            }
+
+            try {
+                st.executeUpdate(
+                        "CREATE TABLE users (" +
+                                "id INTEGER NOT NULL PRIMARY KEY, " +
+                                "username VARCHAR(50) UNIQUE NOT NULL, " +
+                                "password_hash VARCHAR(128) NOT NULL, " +
+                                "role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'starosta', 'dean')), " +
+                                "student_id INTEGER, " +
+                                "group_id INTEGER, " +
+                                "FOREIGN KEY (student_id) REFERENCES students(id), " +
+                                "FOREIGN KEY (group_id) REFERENCES groups(id)" +
+                                ")"
+                );
+            } catch (SQLException e) {
+                if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
+            }
+
+            try {
+                st.executeUpdate(
+                        "CREATE TABLE lessons (" +
+                                "id INTEGER NOT NULL PRIMARY KEY, " +
+                                "subject_id INTEGER NOT NULL, " +
+                                "pair_number INTEGER NOT NULL, " +
+                                "type VARCHAR(10) NOT NULL CHECK (type IN ('ЛБ', 'ПР', 'ЛК')), " +
+                                "room_number VARCHAR(20), " +
+                                "building_number VARCHAR(20), " +
+                                "lesson_date DATE NOT NULL, " +
                                 "FOREIGN KEY (subject_id) REFERENCES subjects(id)" +
                                 ")"
                 );
