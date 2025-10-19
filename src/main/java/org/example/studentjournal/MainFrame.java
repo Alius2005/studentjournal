@@ -14,13 +14,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JOptionPane;
 import java.util.stream.Collectors;
 import com.toedter.calendar.JDateChooser;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 class DaySpinnerDateModel extends SpinnerDateModel {
     public DaySpinnerDateModel() {
         super();
     }
 
-    @Override
     public Object getNextValue() {
         Calendar cal = Calendar.getInstance();
         cal.setTime((Date) getValue());
@@ -28,7 +29,6 @@ class DaySpinnerDateModel extends SpinnerDateModel {
         return cal.getTime();
     }
 
-    @Override
     public Object getPreviousValue() {
         Calendar cal = Calendar.getInstance();
         cal.setTime((Date) getValue());
@@ -57,65 +57,408 @@ public class MainFrame extends JFrame {
         displayArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(displayArea);
 
-        JPanel buttonPanel = new JPanel(new GridLayout(3, 5, 10, 10));
+        JPanel comboBoxPanel = new JPanel(new GridLayout(2, 2, 5, 5));
 
-        JButton btnAddStudent = new JButton("Добавить студента");
-        JButton btnShowStudents = new JButton("Показать студентов");
-        JButton btnEditStudent = new JButton("Редактировать студента");
-        JButton btnAddGroup = new JButton("Добавить группу");
-        JButton btnShowGroups = new JButton("Показать группы");
-        JButton btnEditGroup = new JButton("Редактировать группу");
-        JButton btnAddSubject = new JButton("Добавить предмет");
-        JButton btnShowSubjects = new JButton("Показать предметы");
-        JButton btnEditSubject = new JButton("Редактировать предмет");
-        JButton btnAddGrade = new JButton("Добавить оценку");
-        JButton btnShowGrades = new JButton("Показать оценки");
-        JButton btnEditGrade = new JButton("Редактировать оценку");
-        JButton btnAddAttendance = new JButton("Добавить посещаемость");
-        JButton btnShowAttendance = new JButton("Показать посещаемость");
-        JButton btnEditAttendance = new JButton("Редактировать посещаемость");
+        // 1) Добавление
+        JPanel addPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        String[] addOptions = {"студента", "группу", "предмет", "оценку", "посещаемость", "урок"};
+        JComboBox<String> addCombo = new JComboBox<>(addOptions);
+        JButton addBtn = new JButton("Добавить");
+        addPanel.add(new JLabel("Добавить:"));
+        addPanel.add(addCombo);
+        addPanel.add(addBtn);
 
-        buttonPanel.add(btnAddStudent);
-        buttonPanel.add(btnShowStudents);
-        buttonPanel.add(btnEditStudent);
-        buttonPanel.add(btnAddGroup);
-        buttonPanel.add(btnShowGroups);
-        buttonPanel.add(btnEditGroup);
-        buttonPanel.add(btnAddSubject);
-        buttonPanel.add(btnShowSubjects);
-        buttonPanel.add(btnEditSubject);
-        buttonPanel.add(btnAddGrade);
-        buttonPanel.add(btnShowGrades);
-        buttonPanel.add(btnEditGrade);
-        buttonPanel.add(btnAddAttendance);
-        buttonPanel.add(btnShowAttendance);
-        buttonPanel.add(btnEditAttendance);
+        // 2) Изменение
+        JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        String[] editOptions = {"студента", "группу", "предмет", "оценку", "посещаемость", "урок"};
+        JComboBox<String> editCombo = new JComboBox<>(editOptions);
+        JButton editBtn = new JButton("Изменить");
+        editPanel.add(new JLabel("Изменить:"));
+        editPanel.add(editCombo);
+        editPanel.add(editBtn);
+
+        // 3) Удаление
+        JPanel deletePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        String[] deleteOptions = {"студента", "группу", "предмет", "оценку", "посещаемость", "урок"};
+        JComboBox<String> deleteCombo = new JComboBox<>(deleteOptions);
+        JButton deleteBtn = new JButton("Удалить");
+        deletePanel.add(new JLabel("Удалить:"));
+        deletePanel.add(deleteCombo);
+        deletePanel.add(deleteBtn);
+
+        // 4) Просмотр
+        JPanel showPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        String[] showOptions = {"студентов", "групп", "предметов", "оценок", "посещаемости", "уроков"};
+        JComboBox<String> showCombo = new JComboBox<>(showOptions);
+        JButton showBtn = new JButton("Показать");
+        showPanel.add(new JLabel("Показать:"));
+        showPanel.add(showCombo);
+        showPanel.add(showBtn);
+
+        comboBoxPanel.add(addPanel);
+        comboBoxPanel.add(editPanel);
+        comboBoxPanel.add(deletePanel);
+        comboBoxPanel.add(showPanel);
 
         panel.add(scrollPane, BorderLayout.CENTER);
-        panel.add(buttonPanel, BorderLayout.SOUTH);
+        panel.add(comboBoxPanel, BorderLayout.SOUTH);
 
         add(panel);
 
-        btnShowStudents.addActionListener(e -> showStudents());
-        btnAddStudent.addActionListener(e -> addStudentDialog());
+        addBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String selected = (String) addCombo.getSelectedItem();
+                switch (selected) {
+                    case "студента":
+                        addStudentDialog();
+                        break;
+                    case "группу":
+                        addGroupDialog();
+                        break;
+                    case "предмет":
+                        addSubjectDialog();
+                        break;
+                    case "оценку":
+                        addGradeDialog();
+                        break;
+                    case "посещаемость":
+                        addAttendanceGroupDialog();
+                        break;
+                    case "урок":
+                        addLessonDialog();
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(MainFrame.this, "Неизвестная опция добавления.");
+                }
+            }
+        });
+        editBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String selected = (String) editCombo.getSelectedItem();
+                switch (selected) {
+                    case "студента":
+                        editStudentDialog();
+                        break;
+                    case "группу":
+                        editGroupDialog();
+                        break;
+                    case "предмет":
+                        editSubjectDialog();
+                        break;
+                    case "оценку":
+                        editGradeDialog();
+                        break;
+                    case "посещаемость":
+                        editAttendanceDialog();
+                        break;
+                    case "урок":
+                        editLessonDialog();
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(MainFrame.this, "Неизвестная опция изменения.");
+                }
+            }
+        });
+        deleteBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String selected = (String) deleteCombo.getSelectedItem();
+                switch (selected) {
+                    case "студента":
+                        deleteStudentDialog();
+                        break;
+                    case "группу":
+                        deleteGroupDialog();
+                        break;
+                    case "предмет":
+                        deleteSubjectDialog();
+                        break;
+                    case "оценку":
+                        deleteGradeDialog();
+                        break;
+                    case "посещаемость":
+                        deleteAttendanceDialog();
+                        break;
+                    case "урок":
+                        deleteLessonDialog();
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(MainFrame.this, "Неизвестная опция удаления.");
+                }
+            }
+        });
+        showBtn.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String selected = (String) showCombo.getSelectedItem();
+                switch (selected) {
+                    case "студентов":
+                        showStudents();
+                        break;
+                    case "групп":
+                        showGroups();
+                        break;
+                    case "предметов":
+                        showSubjects();
+                        break;
+                    case "оценок":
+                        showGrades();
+                        break;
+                    case "посещаемости":
+                        showAttendance();
+                        break;
+                    case "уроков":
+                        showLesson();
+                        break;
+                    default:
+                        JOptionPane.showMessageDialog(MainFrame.this, "Неизвестная опция просмотра.");
+                }
+            }
+        });
+    }
 
-        btnShowGroups.addActionListener(e -> showGroups());
-        btnAddGroup.addActionListener(e -> addGroupDialog());
+    private void deleteStudentDialog() {
+        try {
+            List<DbManager.Student> students = dbManager.getStudents();
+            if (students.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет студентов для удаления.");
+                return;
+            }
 
-        btnShowSubjects.addActionListener(e -> showSubjects());
-        btnAddSubject.addActionListener(e -> addSubjectDialog());
+            String[] columnNames = {"ID", "ФИО", "Дата рождения", "Группа", "Контакт"};
+            Object[][] data = new Object[students.size()][5];
+            for (int i = 0; i < students.size(); i++) {
+                DbManager.Student s = students.get(i);
+                data[i][0] = s.getId();
+                data[i][1] = s.getFullName();
+                data[i][2] = s.getBirthDate();
+                data[i][3] = s.getGroupName();
+                data[i][4] = s.getContact();
+            }
 
-        btnShowGrades.addActionListener(e -> showGrades());
-        btnAddGrade.addActionListener(e -> addGradeDialog());
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите студента для удаления", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
 
-        btnShowAttendance.addActionListener(e -> showAttendance());
-        btnAddAttendance.addActionListener(e -> addAttendanceGroupDialog());
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
 
-        btnEditStudent.addActionListener(e -> editStudentDialog());
-        btnEditGroup.addActionListener(e -> editGroupDialog());
-        btnEditSubject.addActionListener(e -> editSubjectDialog());
-        btnEditGrade.addActionListener(e -> editGradeDialog());
-        btnEditAttendance.addActionListener(e -> editAttendanceDialog());
+            DbManager.Student selected = students.get(selectedRow);
+            int confirm = JOptionPane.showConfirmDialog(this, "Удалить студента " + selected.getFullName() + "?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dbManager.deleteStudent(selected.getId());
+                JOptionPane.showMessageDialog(this, "Студент удален.");
+                showStudents();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+    private void deleteGroupDialog() {
+        try {
+            List<DbManager.Group> groups = dbManager.getGroups();
+            if (groups.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет групп для удаления.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Название", "Учебный план", "Преподаватель", "Предметы"};
+            Object[][] data = new Object[groups.size()][5];
+            for (int i = 0; i < groups.size(); i++) {
+                DbManager.Group g = groups.get(i);
+                data[i][0] = g.getId();
+                data[i][1] = g.getName();
+                data[i][2] = g.getCurriculum();
+                data[i][3] = g.getTeacher();
+                data[i][4] = g.getSubjects();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите группу для удаления", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            DbManager.Group selected = groups.get(selectedRow);
+            int confirm = JOptionPane.showConfirmDialog(this, "Удалить группу " + selected.getName() + "?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dbManager.deleteGroup(selected.getId());
+                JOptionPane.showMessageDialog(this, "Группа удалена.");
+                showGroups();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+    private void deleteSubjectDialog() {
+        try {
+            List<DbManager.Subject> subjects = dbManager.getSubjects();
+            if (subjects.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет предметов для удаления.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Название", "Преподаватель", "Расписание"};
+            Object[][] data = new Object[subjects.size()][4];
+            for (int i = 0; i < subjects.size(); i++) {
+                DbManager.Subject s = subjects.get(i);
+                data[i][0] = s.getId();
+                data[i][1] = s.getName();
+                data[i][2] = s.getTeacher();
+                data[i][3] = s.getSchedule();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите предмет для удаления", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            DbManager.Subject selected = subjects.get(selectedRow);
+            int confirm = JOptionPane.showConfirmDialog(this, "Удалить предмет " + selected.getName() + "?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dbManager.deleteSubject(selected.getId());
+                JOptionPane.showMessageDialog(this, "Предмет удален.");
+                showSubjects();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+    private void deleteGradeDialog() {
+        try {
+            List<DbManager.Grade> grades = dbManager.getGrades();
+            if (grades.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет оценок для удаления.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Студент", "Предмет", "Тип", "Значение", "Дата"};
+            Object[][] data = new Object[grades.size()][6];
+            for (int i = 0; i < grades.size(); i++) {
+                DbManager.Grade g = grades.get(i);
+                data[i][0] = g.getId();
+                data[i][1] = g.getStudentName();
+                data[i][2] = g.getSubjectName();
+                data[i][3] = g.getGradeType();
+                data[i][4] = g.getGradeValue();
+                data[i][5] = g.getGradeDate();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите оценку для удаления", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            DbManager.Grade selected = grades.get(selectedRow);
+            int confirm = JOptionPane.showConfirmDialog(this, "Удалить оценку для " + selected.getStudentName() + " по " + selected.getSubjectName() + "?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dbManager.deleteGrade(selected.getId());
+                JOptionPane.showMessageDialog(this, "Оценка удалена.");
+                showGrades();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+    private void deleteAttendanceDialog() {
+        try {
+            List<DbManager.Attendance> attendances = dbManager.getAttendance();
+            if (attendances.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет записей посещаемости для удаления.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Студент", "Предмет", "Дата", "Присутствие"};
+            Object[][] data = new Object[attendances.size()][5];
+            for (int i = 0; i < attendances.size(); i++) {
+                DbManager.Attendance a = attendances.get(i);
+                data[i][0] = a.getId();
+                data[i][1] = a.getStudentName();
+                data[i][2] = a.getSubjectName();
+                data[i][3] = a.getAttendanceDate();
+                data[i][4] = a.isPresent() ? "Да" : "Нет";
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите запись посещаемости для удаления", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            DbManager.Attendance selected = attendances.get(selectedRow);
+            int confirm = JOptionPane.showConfirmDialog(this, "Удалить запись посещаемости для " + selected.getStudentName() + "?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dbManager.deleteAttendance(selected.getId());
+                JOptionPane.showMessageDialog(this, "Запись посещаемости удалена.");
+                showAttendance();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+    private void deleteLessonDialog() {
+        try {
+            List<DbManager.Lesson> lessons = dbManager.getLessons();
+            if (lessons.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет уроков для удаления.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Предмет", "Дата", "Тема"};
+            Object[][] data = new Object[lessons.size()][4];
+            for (int i = 0; i < lessons.size(); i++) {
+                DbManager.Lesson l = lessons.get(i);
+                data[i][0] = l.getId();
+                data[i][1] = l.getSubjectName();
+                data[i][2] = l.getLessonDate();
+                data[i][3] = l.getTopic();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите урок для удаления", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            DbManager.Lesson selected = lessons.get(selectedRow);
+            int confirm = JOptionPane.showConfirmDialog(this, "Удалить урок " + selected.getTopic() + "?", "Подтверждение", JOptionPane.YES_NO_OPTION);
+            if (confirm == JOptionPane.YES_OPTION) {
+                dbManager.deleteLesson(selected.getId());
+                JOptionPane.showMessageDialog(this, "Урок удален.");
+                showLesson();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
     }
 
     private void editStudentDialog() {
@@ -471,6 +814,89 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+    private void editLessonDialog() {
+        try {
+            List<DbManager.Lesson> lessons = dbManager.getLessons();
+            if (lessons.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет уроков для редактирования.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Предмет", "Дата", "Тема"};
+            Object[][] data = new Object[lessons.size()][4];
+            for (int i = 0; i < lessons.size(); i++) {
+                DbManager.Lesson l = lessons.get(i);
+                data[i][0] = l.getId();
+                data[i][1] = l.getSubjectName();
+                data[i][2] = l.getLessonDate();
+                data[i][3] = l.getTopic();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите урок для редактирования", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            DbManager.Lesson selected = lessons.get(selectedRow);
+
+            List<DbManager.Subject> subjects = dbManager.getSubjects();
+            JComboBox<DbManager.Subject> subjectCombo = new JComboBox<>(subjects.toArray(new DbManager.Subject[0]));
+            subjectCombo.setRenderer(new DefaultListCellRenderer() {
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (value instanceof DbManager.Subject) {
+                        setText(((DbManager.Subject) value).getName());
+                    }
+                    return this;
+                }
+            });
+            for (int i = 0; i < subjects.size(); i++) {
+                if (subjects.get(i).getName().equals(selected.getSubjectName())) {
+                    subjectCombo.setSelectedIndex(i);
+                    break;
+                }
+            }
+
+            JDateChooser dateChooser = new JDateChooser();
+            dateChooser.setDateFormatString("yyyy-MM-dd");
+            dateChooser.setDate(java.sql.Date.valueOf(selected.getLessonDate()));
+
+            JTextField topicField = new JTextField(selected.getTopic());
+
+            JPanel panel = new JPanel(new GridLayout(3, 2));
+            panel.add(new JLabel("Предмет:"));
+            panel.add(subjectCombo);
+            panel.add(new JLabel("Дата:"));
+            panel.add(dateChooser);
+            panel.add(new JLabel("Тема:"));
+            panel.add(topicField);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Редактировать урок", JOptionPane.OK_CANCEL_OPTION);
+            if (result != JOptionPane.OK_OPTION) return;
+
+            DbManager.Subject selectedSubject = (DbManager.Subject) subjectCombo.getSelectedItem();
+            Date selectedDate = dateChooser.getDate();
+            String topic = topicField.getText().trim();
+
+            if (selectedDate == null || topic.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Заполните все поля.");
+                return;
+            }
+
+            LocalDate lessonDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            dbManager.updateLesson(selected.getId(), selectedSubject.getId(), lessonDate, topic);
+            JOptionPane.showMessageDialog(this, "Урок обновлен.");
+            showLesson();
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
 
     private void addStudentDialog() {
         JTextField fullNameField = new JTextField();
@@ -699,6 +1125,58 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+    private void addLessonDialog() {
+        try {
+            List<DbManager.Subject> subjects = dbManager.getSubjects();
+            if (subjects.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет предметов для создания урока.");
+                return;
+            }
+
+            JComboBox<DbManager.Subject> subjectCombo = new JComboBox<>(subjects.toArray(new DbManager.Subject[0]));
+            subjectCombo.setRenderer(new DefaultListCellRenderer() {
+                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    if (value instanceof DbManager.Subject) {
+                        setText(((DbManager.Subject) value).getName());
+                    }
+                    return this;
+                }
+            });
+
+            JDateChooser dateChooser = new JDateChooser();
+            dateChooser.setDateFormatString("yyyy-MM-dd");
+
+            JTextField topicField = new JTextField();
+
+            JPanel panel = new JPanel(new GridLayout(3, 2));
+            panel.add(new JLabel("Предмет:"));
+            panel.add(subjectCombo);
+            panel.add(new JLabel("Дата:"));
+            panel.add(dateChooser);
+            panel.add(new JLabel("Тема:"));
+            panel.add(topicField);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Добавить урок", JOptionPane.OK_CANCEL_OPTION);
+            if (result != JOptionPane.OK_OPTION) return;
+
+            DbManager.Subject selectedSubject = (DbManager.Subject) subjectCombo.getSelectedItem();
+            Date selectedDate = dateChooser.getDate();
+            String topic = topicField.getText().trim();
+
+            if (selectedDate == null || topic.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Заполните все поля.");
+                return;
+            }
+
+            LocalDate lessonDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            dbManager.insertLesson(selectedSubject.getId(), lessonDate, topic);
+            JOptionPane.showMessageDialog(this, "Урок добавлен.");
+            showLesson();
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
 
     private void showStudents() {
         try {
@@ -825,6 +1303,17 @@ public class MainFrame extends JFrame {
             JScrollPane scrollPane = new JScrollPane(table);
             JOptionPane.showMessageDialog(this, scrollPane, "Посещаемость", JOptionPane.INFORMATION_MESSAGE);
         } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+    private void showLesson() {
+        try {
+            List<DbManager.Lesson> lessons = dbManager.getLessons();
+            displayArea.setText("");
+            for (DbManager.Lesson l : lessons) {
+                displayArea.append("ID: " + l.getId() + ", Предмет: " + l.getSubjectName() + ", Дата: " + l.getLessonDate() + ", Тема: " + l.getTopic() + "\n");
+            }
+        } catch (Exception ex) {
             showError(ex);
         }
     }

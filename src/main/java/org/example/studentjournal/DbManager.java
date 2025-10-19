@@ -116,6 +116,24 @@ public class DbManager {
         public LocalDate getAttendanceDate() { return attendanceDate; }
         public boolean isPresent() { return isPresent; }
     }
+    public static class Lesson {
+        private long id;
+        private String subjectName;
+        private LocalDate lessonDate;
+        private String topic;
+
+        public Lesson(long id, String subjectName, LocalDate lessonDate, String topic) {
+            this.id = id;
+            this.subjectName = subjectName;
+            this.lessonDate = lessonDate;
+            this.topic = topic;
+        }
+
+        public long getId() { return id; }
+        public String getSubjectName() { return subjectName; }
+        public LocalDate getLessonDate() { return lessonDate; }
+        public String getTopic() { return topic; }
+    }
 
     private final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
 
@@ -329,6 +347,15 @@ public class DbManager {
         java.sql.Date sqlDate = java.sql.Date.valueOf(attendanceDate);
         executeUpdate(sql, studentId, subjectId, sqlDate, isPresent ? 1 : 0, id);
     }
+    public void insertLesson(long subjectId, LocalDate lessonDate, String topic) throws SQLException {
+        String sql = "INSERT INTO lessons (subject_id, lesson_date, topic) VALUES (?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, subjectId);
+            stmt.setDate(2, java.sql.Date.valueOf(lessonDate));
+            stmt.setString(3, topic);
+            stmt.executeUpdate();
+        }
+    }
 
     public void insertStudent(String fullName, LocalDate birthDate, String groupName, String contact) throws SQLException {
         String sql = "INSERT INTO students (id, full_name, birth_date, group_name, contact) VALUES (NEXT VALUE FOR GEN_STUDENT_ID, ?, ?, ?, ?)";
@@ -351,6 +378,16 @@ public class DbManager {
         String sql = "INSERT INTO attendance (id, student_id, subject_id, attendance_date, is_present) VALUES (NEXT VALUE FOR GEN_ATTENDANCE_ID, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         executeUpdate(sql, studentId, subjectId, sqlDate, isPresent ? 1 : 0);
+    }
+    public void updateLesson(long id, long subjectId, LocalDate lessonDate, String topic) throws SQLException {
+        String sql = "UPDATE lessons SET subject_id = ?, lesson_date = ?, topic = ? WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, subjectId);
+            stmt.setDate(2, java.sql.Date.valueOf(lessonDate));
+            stmt.setString(3, topic);
+            stmt.setLong(4, id);
+            stmt.executeUpdate();
+        }
     }
 
     public List<Student> getStudents() throws SQLException {
@@ -435,6 +472,45 @@ public class DbManager {
             }
         }
         return list;
+    }
+    public List<Lesson> getLessons() throws SQLException {
+        List<Lesson> lessons = new ArrayList<>();
+        String sql = "SELECT l.id, s.name AS subject_name, l.lesson_date, l.topic FROM lessons l JOIN subjects s ON l.subject_id = s.id";
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                lessons.add(new Lesson(rs.getLong("id"), rs.getString("subject_name"), rs.getDate("lesson_date").toLocalDate(), rs.getString("topic")));
+            }
+        }
+        return lessons;
+    }
+
+    public void deleteStudent(int id) throws SQLException {
+        String sql = "DELETE FROM students WHERE id = ?";
+        executeUpdate(sql, id);
+    }
+    public void deleteGroup(int id) throws SQLException {
+        String sql = "DELETE FROM groups WHERE id = ?";
+        executeUpdate(sql, id);
+    }
+    public void deleteSubject(int id) throws SQLException {
+        String sql = "DELETE FROM subjects WHERE id = ?";
+        executeUpdate(sql, id);
+    }
+    public void deleteGrade(int id) throws SQLException {
+        String sql = "DELETE FROM grades WHERE id = ?";
+        executeUpdate(sql, id);
+    }
+    public void deleteAttendance(int id) throws SQLException {
+        String sql = "DELETE FROM attendance WHERE id = ?";
+        executeUpdate(sql, id);
+    }
+    public void deleteLesson(long id) throws SQLException {
+        String sql = "DELETE FROM lessons WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            stmt.executeUpdate();
+        }
     }
 
     public void close() {
