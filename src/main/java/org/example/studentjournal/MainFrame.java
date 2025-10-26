@@ -755,18 +755,17 @@ public class MainFrame extends JFrame {
                 return;
             }
 
-            // Расширенная таблица с всеми полями
             String[] columnNames = {"ID", "Предмет ID", "Номер пары", "Дата", "Тип", "Номер комнаты", "Номер здания"};
             Object[][] data = new Object[lessons.size()][7];
             for (int i = 0; i < lessons.size(); i++) {
                 Lesson l = lessons.get(i);
                 data[i][0] = l.getId();
                 data[i][1] = l.getSubjectId();
-                data[i][2] = l.getPairNumber();  // Добавлено
+                data[i][2] = l.getPairNumber();
                 data[i][3] = l.getLessonDate();
-                data[i][4] = l.getType();  // "Тема" → "Тип" для точности
-                data[i][5] = l.getRoomNumber();  // Добавлено
-                data[i][6] = l.getBuildingNumber();  // Добавлено
+                data[i][4] = l.getType();
+                data[i][5] = l.getRoomNumber();
+                data[i][6] = l.getBuildingNumber();
             }
 
             JTable table = new JTable(data, columnNames);
@@ -782,19 +781,17 @@ public class MainFrame extends JFrame {
 
             Lesson selected = lessons.get(selectedRow);
 
-            // Поля для редактирования (все)
             JTextField subjectIdField = new JTextField(String.valueOf(selected.getSubjectId()));
-            JTextField pairNumberField = new JTextField(String.valueOf(selected.getPairNumber()));  // Добавлено
-            // Замена JDateChooser на JSpinner
+            JTextField pairNumberField = new JTextField(String.valueOf(selected.getPairNumber()));
             JSpinner dateSpinner = new JSpinner(new javax.swing.SpinnerDateModel());
             JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
             dateSpinner.setEditor(dateEditor);
             dateSpinner.setValue(java.sql.Date.valueOf(selected.getLessonDate()));
-            JTextField typeField = new JTextField(selected.getType());  // Переименовано для ясности
-            JTextField roomNumberField = new JTextField(selected.getRoomNumber());  // Добавлено
-            JTextField buildingNumberField = new JTextField(selected.getBuildingNumber());  // Добавлено
+            JTextField typeField = new JTextField(selected.getType());
+            JTextField roomNumberField = new JTextField(selected.getRoomNumber());
+            JTextField buildingNumberField = new JTextField(selected.getBuildingNumber());
 
-            JPanel panel = new JPanel(new GridLayout(6, 2));  // 6 рядов: 6 полей
+            JPanel panel = new JPanel(new GridLayout(6, 2));
             panel.add(new JLabel("ID предмета:"));
             panel.add(subjectIdField);
             panel.add(new JLabel("Номер пары:"));
@@ -811,7 +808,6 @@ public class MainFrame extends JFrame {
             int result = JOptionPane.showConfirmDialog(this, panel, "Редактировать урок", JOptionPane.OK_CANCEL_OPTION);
             if (result != JOptionPane.OK_OPTION) return;
 
-            // Парсинг и валидация
             int subjectId = Integer.parseInt(subjectIdField.getText().trim());
             int pairNumber = Integer.parseInt(pairNumberField.getText().trim());
             Date selectedDate = (Date) dateSpinner.getValue();
@@ -994,18 +990,16 @@ public class MainFrame extends JFrame {
     }
     private void addLessonDialog() {
         try {
-            // Поля для добавления (все)
             JTextField subjectIdField = new JTextField();
-            JTextField pairNumberField = new JTextField();  // Добавлено
-            // Замена JDateChooser на JSpinner
+            JTextField pairNumberField = new JTextField();
             JSpinner dateSpinner = new JSpinner(new javax.swing.SpinnerDateModel());
             JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
             dateSpinner.setEditor(dateEditor);
-            JTextField typeField = new JTextField();  // Переименовано
-            JTextField roomNumberField = new JTextField();  // Добавлено
-            JTextField buildingNumberField = new JTextField();  // Добавлено
+            JTextField typeField = new JTextField();
+            JTextField roomNumberField = new JTextField();
+            JTextField buildingNumberField = new JTextField();
 
-            JPanel panel = new JPanel(new GridLayout(6, 2));  // 6 рядов
+            JPanel panel = new JPanel(new GridLayout(6, 2));
             panel.add(new JLabel("ID предмета:"));
             panel.add(subjectIdField);
             panel.add(new JLabel("Номер пары:"));
@@ -1022,7 +1016,6 @@ public class MainFrame extends JFrame {
             int result = JOptionPane.showConfirmDialog(this, panel, "Добавить урок", JOptionPane.OK_CANCEL_OPTION);
             if (result != JOptionPane.OK_OPTION) return;
 
-            // Парсинг и валидация
             int subjectId = Integer.parseInt(subjectIdField.getText().trim());
             int pairNumber = Integer.parseInt(pairNumberField.getText().trim());
             Date selectedDate = (Date) dateSpinner.getValue();

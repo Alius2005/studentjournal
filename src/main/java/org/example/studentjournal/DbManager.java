@@ -61,7 +61,6 @@ public class DbManager {
                 if (!e.getMessage().toLowerCase().contains("already exists")) throw e;
             }
 
-            // Create tables in dependency order
             try {
                 st.executeUpdate(
                         "CREATE TABLE teachers (" +
@@ -255,7 +254,8 @@ public class DbManager {
         String sql = "UPDATE lessons SET subject_id = ?, pair_number = ?, type = ?, room_number = ?, building_number = ?, lesson_date = ? WHERE id = ?";
         java.sql.Date sqlDate = java.sql.Date.valueOf(lessonDate);
         executeUpdate(sql, subjectId, pairNumber, type, roomNumber, buildingNumber, sqlDate, id);
-    }    public void updateTeacher(int id, String firstName, String lastName, String middleName, String email, String contact, String specialization) throws SQLException {
+    }
+    public void updateTeacher(int id, String firstName, String lastName, String middleName, String email, String contact, String specialization) throws SQLException {
         String sql = "UPDATE teachers SET first_name = ?, last_name = ?, middle_name = ?, email = ?, contact = ?, specialization = ? WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, firstName);
@@ -296,7 +296,8 @@ public class DbManager {
         String sql = "INSERT INTO lessons (id, subject_id, pair_number, type, room_number, building_number, lesson_date) VALUES (NEXT VALUE FOR GEN_LESSON_ID, ?, ?, ?, ?, ?, ?)";
         java.sql.Date sqlDate = java.sql.Date.valueOf(lessonDate);
         executeUpdate(sql, subjectId, pairNumber, type, roomNumber, buildingNumber, sqlDate);
-    }    public void insertTeacher(String firstName, String lastName, String middleName, String email, String contact, String specialization) throws SQLException {
+    }
+    public void insertTeacher(String firstName, String lastName, String middleName, String email, String contact, String specialization) throws SQLException {
         String sql = "INSERT INTO teachers (first_name, last_name, middle_name, email, contact, specialization) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, firstName);
