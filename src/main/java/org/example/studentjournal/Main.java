@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
+import org.example.studentjournal.POJO.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -85,35 +86,35 @@ public class Main {
                         addStudent(scanner, dbManager);
                         break;
                     case 2:
-                        List<DbManager.Student> students = dbManager.getStudents();
+                        List<Student> students = dbManager.getStudents();
                         students.forEach(System.out::println);
                         break;
                     case 3:
                         addGroup(scanner, dbManager);
                         break;
                     case 4:
-                        List<DbManager.Group> groups = dbManager.getGroups();
+                        List<Group> groups = dbManager.getGroups();
                         groups.forEach(System.out::println);
                         break;
                     case 5:
                         addSubject(scanner, dbManager);
                         break;
                     case 6:
-                        List<DbManager.Subject> subjects = dbManager.getSubjects();
+                        List<Subject> subjects = dbManager.getSubjects();
                         subjects.forEach(System.out::println);
                         break;
                     case 7:
                         addGrade(scanner, dbManager);
                         break;
                     case 8:
-                        List<DbManager.Grade> grades = dbManager.getGrades();
+                        List<Grade> grades = dbManager.getGrades();
                         grades.forEach(System.out::println);
                         break;
                     case 9:
                         addAttendance(scanner, dbManager);
                         break;
                     case 10:
-                        List<DbManager.Attendance> attendance = dbManager.getAttendance();
+                        List<Attendance> attendance = dbManager.getAttendance();
                         attendance.forEach(System.out::println);
                         break;
                     default:
@@ -131,17 +132,24 @@ public class Main {
         }
     }
 
-    // Вспомогательные методы для меню (чтобы код был чище)
+    // Вспомогательные методы для меню (чтобы код был чище) - обновлены под новую схему
     private static void addStudent(Scanner scanner, DbManager dbManager) throws SQLException {
-        System.out.print("Введите ФИО: ");
-        String fullName = scanner.nextLine();
+        System.out.print("Введите имя: ");
+        String firstName = scanner.nextLine();
+        System.out.print("Введите фамилию: ");
+        String lastName = scanner.nextLine();
+        System.out.print("Введите отчество: ");
+        String middleName = scanner.nextLine();
         System.out.print("Введите дату рождения (yyyy-mm-dd): ");
         LocalDate birthDate = LocalDate.parse(scanner.nextLine());
-        System.out.print("Введите группу: ");
-        String groupName = scanner.nextLine();
+        System.out.print("Введите ID группы: ");
+        int groupId = scanner.nextInt();
+        scanner.nextLine();
         System.out.print("Введите контакт: ");
         String contact = scanner.nextLine();
-        dbManager.insertStudent(fullName, birthDate, groupName, contact);
+        System.out.print("Введите email: ");
+        String email = scanner.nextLine();
+        dbManager.insertStudent(firstName, lastName, middleName, birthDate, groupId, contact, email);
         System.out.println("Студент добавлен.");
     }
 
@@ -150,31 +158,33 @@ public class Main {
         String groupName = scanner.nextLine();
         System.out.print("Введите учебный план: ");
         String curriculum = scanner.nextLine();
-        System.out.print("Введите преподавателя: ");
-        String teacher = scanner.nextLine();
+        System.out.print("Введите ID преподавателя: ");
+        int teacherId = scanner.nextInt();
+        scanner.nextLine();
         System.out.print("Введите предметы: ");
         String subjects = scanner.nextLine();
-        dbManager.insertGroup(groupName, curriculum, teacher, subjects);
+        dbManager.insertGroup(groupName, curriculum, teacherId, subjects);
         System.out.println("Группа добавлена.");
     }
 
     private static void addSubject(Scanner scanner, DbManager dbManager) throws SQLException {
         System.out.print("Введите название предмета: ");
         String subjectName = scanner.nextLine();
-        System.out.print("Введите преподавателя: ");
-        String teacher = scanner.nextLine();
+        System.out.print("Введите ID преподавателя: ");
+        int teacherId = scanner.nextInt();
+        scanner.nextLine();
         System.out.print("Введите расписание: ");
         String schedule = scanner.nextLine();
-        dbManager.insertSubject(subjectName, teacher, schedule);
+        dbManager.insertSubject(subjectName, teacherId, schedule);
         System.out.println("Предмет добавлен.");
     }
 
     private static void addGrade(Scanner scanner, DbManager dbManager) throws SQLException {
         System.out.print("Введите ID студента: ");
-        long studentId = scanner.nextLong();
+        int studentId = scanner.nextInt();
         scanner.nextLine();
         System.out.print("Введите ID предмета: ");
-        long subjectId = scanner.nextLong();
+        int subjectId = scanner.nextInt();
         scanner.nextLine();
         System.out.print("Введите тип оценки: ");
         String gradeType = scanner.nextLine();
@@ -189,17 +199,15 @@ public class Main {
 
     private static void addAttendance(Scanner scanner, DbManager dbManager) throws SQLException {
         System.out.print("Введите ID студента: ");
-        long studentId = scanner.nextLong();
+        int studentId = scanner.nextInt();
         scanner.nextLine();
-        System.out.print("Введите ID предмета: ");
-        long subjectId = scanner.nextLong();
+        System.out.print("Введите ID урока: ");
+        int lessonId = scanner.nextInt();
         scanner.nextLine();
-        System.out.print("Введите дату (yyyy-mm-dd): ");
-        LocalDate date = LocalDate.parse(scanner.nextLine());
         System.out.print("Был присутен (true/false): ");
         boolean isPresent = scanner.nextBoolean();
         scanner.nextLine();
-        dbManager.insertAttendance(studentId, subjectId, date, isPresent);
+        dbManager.insertAttendance(studentId, lessonId, isPresent);
         System.out.println("Посещаемость добавлена.");
     }
 }

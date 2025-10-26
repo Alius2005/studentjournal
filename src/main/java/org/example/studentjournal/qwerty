@@ -1,0 +1,67 @@
+    private void editGradeDialog() {
+        try {
+            List<Grade> grades = dbManager.getGrades();
+            if (grades.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Нет оценок для редактирования.");
+                return;
+            }
+
+            String[] columnNames = {"ID", "Студент ID", "Предмет ID", "Тип", "Значение", "Дата"};
+            Object[][] data = new Object[grades.size()][6];
+            for (int i = 0; i < grades.size(); i++) {
+                Grade g = grades.get(i);
+                data[i][0] = g.getId();
+                data[i][1] = g.getStudentId();
+                data[i][2] = g.getSubjectId();
+                data[i][3] = g.getGradeType();
+                data[i][4] = g.getGradeValue();
+                data[i][5] = g.getGradeDate();
+            }
+
+            JTable table = new JTable(data, columnNames);
+            JScrollPane scrollPane = new JScrollPane(table);
+            int option = JOptionPane.showConfirmDialog(this, scrollPane, "Выберите оценку для редактирования", JOptionPane.OK_CANCEL_OPTION);
+            if (option != JOptionPane.OK_OPTION) return;
+
+            int selectedRow = table.getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(this, "Выберите строку.");
+                return;
+            }
+
+            Grade selected = grades.get(selectedRow);
+
+            JTextField studentIdField = new JTextField(String.valueOf(selected.getStudentId()));
+            JTextField subjectIdField = new JTextField(String.valueOf(selected.getSubjectId()));
+            JTextField gradeTypeField = new JTextField(selected.getGradeType());
+            JTextField gradeValueField = new JTextField(String.valueOf(selected.getGradeValue()));
+            JSpinner dateSpinner = new JSpinner(new javax.swing.SpinnerDateModel());
+            dateSpinner.setValue(Date.from(selected.getGradeDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+            JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
+            dateSpinner.setEditor(dateEditor);
+
+            Object[] message = {
+                    "ID студента:", studentIdField,
+                    "ID предмета:", subjectIdField,
+                    "Тип оценки:", gradeTypeField,
+                    "Значение:", gradeValueField,
+                    "Дата:", dateSpinner
+            };
+
+            int editOption = JOptionPane.showConfirmDialog(this, message, "Редактировать оценку", JOptionPane.OK_CANCEL_OPTION);
+            if (editOption == JOptionPane.OK_OPTION) {
+                int studentId = Integer.parseInt(studentIdField.getText().trim());
+                int subjectId = Integer.parseInt(subjectIdField.getText().trim());
+                String gradeType = gradeTypeField.getText().trim();
+                int gradeValue = Integer.parseInt(gradeValueField.getText().trim());
+                Date dateUtil = (Date) dateSpinner.getValue();
+                LocalDate gradeDate = LocalDate.ofInstant(dateUtil.toInstant(), ZoneId.systemDefault());
+
+                dbManager.updateGrade(selected.getId(), studentId, subjectId, gradeType, gradeValue, gradeDate);
+                JOptionPane.showMessageDialog(this, "Оценка обновлена.");
+                showGrades();
+            }
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
