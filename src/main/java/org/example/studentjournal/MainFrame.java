@@ -35,6 +35,7 @@ public class MainFrame extends JFrame {
     private JCheckBox attendancePresentCheckBox;
     private JTextField lessonSubjectIdField, lessonPairNumberField, lessonRoomNumberField, lessonBuildingNumberField, lessonDateField;
     private JComboBox<String> lessonTypeComboBox;
+    private JTextField teacherFirstNameField, teacherLastNameField, teacherMiddleNameField, teacherEmailField, teacherPhoneField, teacherDepartmentField;
 
     public MainFrame(DbManager dbManager) {
         this.dbManager = dbManager;
@@ -52,20 +53,16 @@ public class MainFrame extends JFrame {
         toolPanel.setLayout(new BoxLayout(toolPanel, BoxLayout.Y_AXIS));
         toolPanel.setPreferredSize(new Dimension(200, 600));
 
-        // Кнопка для переключения видимости панели
-        toggleToolPanelBtn = new JButton("<<");
-        toggleToolPanelBtn.addActionListener(e -> toggleToolPanel());
-        toolPanel.add(toggleToolPanelBtn);
-
         // Выбор типа сущности
-        JPanel entityPanel = new JPanel(new GridLayout(6, 1));
+        JPanel entityPanel = new JPanel(new GridLayout(7, 1));
         entityPanel.setBorder(BorderFactory.createTitledBorder("Тип"));
         JRadioButton studentBtn = new JRadioButton("Студенты", true);
         JRadioButton groupBtn = new JRadioButton("Группы");
         JRadioButton subjectBtn = new JRadioButton("Предметы");
         JRadioButton gradeBtn = new JRadioButton("Оценки");
         JRadioButton attendanceBtn = new JRadioButton("Посещаемость");
-        JRadioButton lessonBtn = new JRadioButton("Уроки");
+        JRadioButton lessonBtn = new JRadioButton("Пары");
+        JRadioButton teacherBtn = new JRadioButton("Преподаватели");
         ButtonGroup entityGroup = new ButtonGroup();
         entityGroup.add(studentBtn);
         entityGroup.add(groupBtn);
@@ -73,24 +70,24 @@ public class MainFrame extends JFrame {
         entityGroup.add(gradeBtn);
         entityGroup.add(attendanceBtn);
         entityGroup.add(lessonBtn);
+        entityGroup.add(teacherBtn);
         entityPanel.add(studentBtn);
         entityPanel.add(groupBtn);
         entityPanel.add(subjectBtn);
         entityPanel.add(gradeBtn);
         entityPanel.add(attendanceBtn);
         entityPanel.add(lessonBtn);
+        entityPanel.add(teacherBtn);
 
         // Действия
-        JPanel actionPanel = new JPanel(new GridLayout(4, 1));
+        JPanel actionPanel = new JPanel(new GridLayout(3, 1)); // Изменено на 3, так как кнопка "Показать" удалена
         actionPanel.setBorder(BorderFactory.createTitledBorder("Действия"));
         JButton addBtn = new JButton("Добавить");
         JButton editBtn = new JButton("Изменить");
         JButton deleteBtn = new JButton("Удалить");
-        JButton showBtn = new JButton("Показать");
         actionPanel.add(addBtn);
         actionPanel.add(editBtn);
         actionPanel.add(deleteBtn);
-        actionPanel.add(showBtn);
 
         toolPanel.add(entityPanel);
         toolPanel.add(actionPanel);
@@ -100,8 +97,12 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         mainPanel.setLayout(cardLayout);
 
-        // Панель таблицы
+        // Панель таблицы с кнопкой переключения вверху
         tablePanel = new JPanel(new BorderLayout());
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        toggleToolPanelBtn = new JButton("Скрыть панель");
+        topPanel.add(toggleToolPanelBtn);
+        tablePanel.add(topPanel, BorderLayout.NORTH);
         mainTable = new JTable();
         JScrollPane tableScroll = new JScrollPane(mainTable);
         tablePanel.add(tableScroll, BorderLayout.CENTER);
@@ -117,6 +118,7 @@ public class MainFrame extends JFrame {
         formPanel.add(createGradeForm(), "grades");
         formPanel.add(createAttendanceForm(), "attendance");
         formPanel.add(createLessonForm(), "lessons");
+        formPanel.add(createTeacherForm(), "teachers");
         mainPanel.add(formPanel, "form");
 
         // JSplitPane
@@ -125,19 +127,31 @@ public class MainFrame extends JFrame {
         splitPane.setDividerSize(5);
         add(splitPane);
 
-        // Слушатели для выбора типа
-        studentBtn.addActionListener(e -> currentEntity = "students");
-        groupBtn.addActionListener(e -> currentEntity = "groups");
-        subjectBtn.addActionListener(e -> currentEntity = "subjects");
-        gradeBtn.addActionListener(e -> currentEntity = "grades");
-        attendanceBtn.addActionListener(e -> currentEntity = "attendance");
-        lessonBtn.addActionListener(e -> currentEntity = "lessons");
+        // JMenuBar
+        JMenuBar menuBar = new JMenuBar();
+        JMenu viewMenu = new JMenu("Вид");
+        JMenuItem toggleItem = new JMenuItem("Переключить панель инструментов");
+        toggleItem.addActionListener(e -> toggleToolPanel());
+        viewMenu.add(toggleItem);
+        menuBar.add(viewMenu);
+        setJMenuBar(menuBar);
+
+        // Слушатели для выбора типа (теперь с автоматическим показом данных)
+        studentBtn.addActionListener(e -> { currentEntity = "students"; showData(); });
+        groupBtn.addActionListener(e -> { currentEntity = "groups"; showData(); });
+        subjectBtn.addActionListener(e -> { currentEntity = "subjects"; showData(); });
+        gradeBtn.addActionListener(e -> { currentEntity = "grades"; showData(); });
+        attendanceBtn.addActionListener(e -> { currentEntity = "attendance"; showData(); });
+        lessonBtn.addActionListener(e -> { currentEntity = "lessons"; showData(); });
+        teacherBtn.addActionListener(e -> { currentEntity = "teachers"; showData(); });
 
         // Слушатели для действий
         addBtn.addActionListener(e -> showFormForAdd());
         editBtn.addActionListener(e -> showFormForEdit());
         deleteBtn.addActionListener(e -> deleteSelected());
-        showBtn.addActionListener(e -> showData());
+
+        // Кнопка переключения в tablePanel
+        toggleToolPanelBtn.addActionListener(e -> toggleToolPanel());
 
         // По умолчанию показать студентов
         showStudents();
@@ -146,10 +160,10 @@ public class MainFrame extends JFrame {
     private void toggleToolPanel() {
         if (toolPanelVisible) {
             splitPane.setDividerLocation(0);
-            toggleToolPanelBtn.setText(">>");
+            toggleToolPanelBtn.setText("Показать панель");
         } else {
             splitPane.setDividerLocation(200);
-            toggleToolPanelBtn.setText("<<");
+            toggleToolPanelBtn.setText("Скрыть панель");
         }
         toolPanelVisible = !toolPanelVisible;
     }
@@ -174,6 +188,9 @@ public class MainFrame extends JFrame {
                 break;
             case "lessons":
                 showLesson();
+                break;
+            case "teachers":
+                showTeachers();
                 break;
         }
     }
@@ -232,6 +249,10 @@ public class MainFrame extends JFrame {
                         List<Lesson> lessons = dbManager.getLessons();
                         dbManager.deleteLesson(lessons.get(selectedRow).getId());
                         break;
+                    case "teachers":
+                        List<Teacher> teachers = dbManager.getTeachers();
+                        dbManager.deleteTeacher(teachers.get(selectedRow).getId());
+                        break;
                 }
                 showData();
             } catch (Exception ex) {
@@ -245,7 +266,7 @@ public class MainFrame extends JFrame {
         studentFirstNameField = new JTextField();
         studentLastNameField = new JTextField();
         studentMiddleNameField = new JTextField();
-        studentBirthDateSpinner = new JSpinner(new javax.swing.SpinnerDateModel());
+        studentBirthDateSpinner = new JSpinner(new DaySpinnerDateModel()); // Используем кастомную модель для изменения только дня
         JSpinner.DateEditor birthDateEditor = new JSpinner.DateEditor(studentBirthDateSpinner, "yyyy-MM-dd");
         studentBirthDateSpinner.setEditor(birthDateEditor);
         studentGroupIdField = new JTextField();
@@ -253,8 +274,8 @@ public class MainFrame extends JFrame {
         studentEmailField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
-        panel.add(new JLabel("Имя:")); panel.add(studentFirstNameField);
-        panel.add(new JLabel("Фамилия:")); panel.add(studentLastNameField);
+        panel.add(new JLabel("Фамилия:")); panel.add(studentFirstNameField);
+        panel.add(new JLabel("Имя:")); panel.add(studentLastNameField);
         panel.add(new JLabel("Отчество:")); panel.add(studentMiddleNameField);
         panel.add(new JLabel("Дата рождения:")); panel.add(studentBirthDateSpinner);
         panel.add(new JLabel("ID группы:")); panel.add(studentGroupIdField);
@@ -264,8 +285,8 @@ public class MainFrame extends JFrame {
 
         saveBtn.addActionListener(e -> {
             try {
-                String firstName = studentFirstNameField.getText().trim();
-                String lastName = studentLastNameField.getText().trim();
+                String lastName = studentFirstNameField.getText().trim();
+                String firstName = studentLastNameField.getText().trim();
                 String middleName = studentMiddleNameField.getText().trim();
                 Date birthDateUtil = (Date) studentBirthDateSpinner.getValue();
                 LocalDate birthDate = LocalDate.ofInstant(birthDateUtil.toInstant(), ZoneId.systemDefault());
@@ -286,7 +307,6 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
-
     private JPanel createGroupForm() {
         JPanel panel = new JPanel(new GridLayout(5, 2));
         groupNameField = new JTextField();
@@ -321,7 +341,6 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
-
     private JPanel createSubjectForm() {
         JPanel panel = new JPanel(new GridLayout(4, 2));
         subjectNameField = new JTextField();
@@ -353,7 +372,6 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
-
     private JPanel createGradeForm() {
         JPanel panel = new JPanel(new GridLayout(6, 2));
         gradeStudentIdField = new JTextField();
@@ -391,7 +409,6 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
-
     private JPanel createAttendanceForm() {
         JPanel panel = new JPanel(new GridLayout(4, 2));
         attendanceStudentIdField = new JTextField();
@@ -423,7 +440,6 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
-
     private JPanel createLessonForm() {
         JPanel panel = new JPanel(new GridLayout(7, 2));
         lessonSubjectIdField = new JTextField();
@@ -455,6 +471,46 @@ public class MainFrame extends JFrame {
                     dbManager.updateLesson(editId, subjectId, pairNumber, type, roomNumber, buildingNumber, lessonDate);
                 } else {
                     dbManager.insertLesson(subjectId, pairNumber, type, roomNumber, buildingNumber, lessonDate);
+                }
+                showData();
+            } catch (Exception ex) {
+                showError(ex);
+            }
+        });
+
+        return panel;
+    }
+    private JPanel createTeacherForm() {
+        JPanel panel = new JPanel(new GridLayout(7, 2));
+        teacherFirstNameField = new JTextField();
+        teacherLastNameField = new JTextField();
+        teacherMiddleNameField = new JTextField();
+        teacherEmailField = new JTextField();
+        teacherPhoneField = new JTextField();
+        teacherDepartmentField = new JTextField();
+        JButton saveBtn = new JButton("Сохранить");
+
+        panel.add(new JLabel("Фамилия:")); panel.add(teacherFirstNameField);
+        panel.add(new JLabel("Имя:")); panel.add(teacherLastNameField);
+        panel.add(new JLabel("Отчество:")); panel.add(teacherMiddleNameField);
+        panel.add(new JLabel("Email:")); panel.add(teacherEmailField);
+        panel.add(new JLabel("Контакт:")); panel.add(teacherPhoneField);
+        panel.add(new JLabel("Специализация:")); panel.add(teacherDepartmentField);
+        panel.add(saveBtn);
+
+        saveBtn.addActionListener(e -> {
+            try {
+                String lastName = teacherFirstNameField.getText().trim();
+                String firstName = teacherLastNameField.getText().trim();
+                String middleName = teacherMiddleNameField.getText().trim();
+                String email = teacherEmailField.getText().trim();
+                String contact = teacherPhoneField.getText().trim();
+                String specialization = teacherDepartmentField.getText().trim();
+
+                if (isEditMode) {
+                    dbManager.updateTeacher(editId, firstName, lastName, middleName, email, contact, specialization);
+                } else {
+                    dbManager.insertTeacher(firstName, lastName, middleName, email, contact, specialization);
                 }
                 showData();
             } catch (Exception ex) {
@@ -507,6 +563,14 @@ public class MainFrame extends JFrame {
                 lessonBuildingNumberField.setText("");
                 lessonDateField.setText("");
                 break;
+            case "teachers":
+                teacherFirstNameField.setText("");
+                teacherLastNameField.setText("");
+                teacherMiddleNameField.setText("");
+                teacherEmailField.setText("");
+                teacherPhoneField.setText("");
+                teacherDepartmentField.setText("");
+                break;
         }
     }
 
@@ -531,7 +595,7 @@ public class MainFrame extends JFrame {
                     editId = g.getId();
                     groupNameField.setText(g.getName());
                     groupCurriculumField.setText(g.getCurriculum());
-                    groupTeacherIdField.setText(g.getTeacher()); // String, как в POJO
+                    groupTeacherIdField.setText(String.valueOf(g.getTeacher()));
                     groupSubjectsField.setText(g.getSubjects());
                     break;
                 case "subjects":
@@ -539,7 +603,7 @@ public class MainFrame extends JFrame {
                     Subject subj = subjects.get(row);
                     editId = subj.getId();
                     subjectNameField.setText(subj.getName());
-                    subjectTeacherIdField.setText(subj.getTeacher()); // String, как в POJO
+                    subjectTeacherIdField.setText(String.valueOf(subj.getTeacher()));
                     subjectScheduleField.setText(subj.getSchedule());
                     break;
                 case "grades":
@@ -571,6 +635,17 @@ public class MainFrame extends JFrame {
                     lessonBuildingNumberField.setText(l.getBuildingNumber());
                     lessonDateField.setText(l.getLessonDate().toString());
                     break;
+                case "teachers":
+                    List<Teacher> teachers = dbManager.getTeachers();
+                    Teacher t = teachers.get(row);
+                    editId = t.getId();
+                    teacherFirstNameField.setText(t.getFirstName());
+                    teacherLastNameField.setText(t.getLastName());
+                    teacherMiddleNameField.setText(t.getMiddleName());
+                    teacherEmailField.setText(t.getEmail());
+                    teacherPhoneField.setText(t.getPhone());
+                    teacherDepartmentField.setText(t.getDepartment());
+                    break;
             }
         } catch (SQLException ex) {
             showError(ex);
@@ -596,7 +671,6 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
-
     private void showGroups() {
         try {
             List<Group> groups = dbManager.getGroups();
@@ -615,7 +689,6 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
-
     private void showSubjects() {
         try {
             List<Subject> subjects = dbManager.getSubjects();
@@ -633,7 +706,6 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
-
     private void showGrades() {
         try {
             List<Grade> grades = dbManager.getGrades();
@@ -653,7 +725,6 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
-
     private void showAttendance() {
         try {
             List<Attendance> attendances = dbManager.getAttendance();
@@ -671,7 +742,6 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
-
     private void showLesson() {
         try {
             List<Lesson> lessons = dbManager.getLessons();
@@ -686,6 +756,24 @@ public class MainFrame extends JFrame {
                 data[i][4] = l.getRoomNumber();
                 data[i][5] = l.getBuildingNumber();
                 data[i][6] = l.getLessonDate();
+            }
+            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+    private void showTeachers() {
+        try {
+            List<Teacher> teachers = dbManager.getTeachers();
+            String[] columnNames = {"ID", "ФИО", "Email", "Контакт", "Специализация"};
+            Object[][] data = new Object[teachers.size()][5];
+            for (int i = 0; i < teachers.size(); i++) {
+                Teacher t = teachers.get(i);
+                data[i][0] = t.getId();
+                data[i][1] = t.getFirstName() + " " + t.getMiddleName() + " " + t.getLastName();
+                data[i][2] = t.getEmail();
+                data[i][3] = t.getPhone();
+                data[i][4] = t.getDepartment();
             }
             mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
         } catch (SQLException ex) {

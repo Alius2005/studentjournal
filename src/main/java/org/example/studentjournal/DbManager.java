@@ -255,18 +255,9 @@ public class DbManager {
         java.sql.Date sqlDate = java.sql.Date.valueOf(lessonDate);
         executeUpdate(sql, subjectId, pairNumber, type, roomNumber, buildingNumber, sqlDate, id);
     }
-    public void updateTeacher(int id, String firstName, String lastName, String middleName, String email, String contact, String specialization) throws SQLException {
-        String sql = "UPDATE teachers SET first_name = ?, last_name = ?, middle_name = ?, email = ?, contact = ?, specialization = ? WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, firstName);
-            stmt.setString(2, lastName);
-            stmt.setString(3, middleName);
-            stmt.setString(4, email);
-            stmt.setString(5, contact);
-            stmt.setString(6, specialization);
-            stmt.setInt(7, id);
-            stmt.executeUpdate();
-        }
+    public void updateTeacher(int id, String firstName, String lastName, String middleName, String email, String phone, String department) throws SQLException {
+        String sql = "UPDATE teachers SET first_name = ?, last_name = ?, middle_name = ?, email = ?, phone = ?, department = ? WHERE id = ?";
+        executeUpdate(sql, firstName, lastName, middleName, email, phone, department, id);
     }
 
     // Insert methods
@@ -297,17 +288,9 @@ public class DbManager {
         java.sql.Date sqlDate = java.sql.Date.valueOf(lessonDate);
         executeUpdate(sql, subjectId, pairNumber, type, roomNumber, buildingNumber, sqlDate);
     }
-    public void insertTeacher(String firstName, String lastName, String middleName, String email, String contact, String specialization) throws SQLException {
-        String sql = "INSERT INTO teachers (first_name, last_name, middle_name, email, contact, specialization) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, firstName);
-            stmt.setString(2, lastName);
-            stmt.setString(3, middleName);
-            stmt.setString(4, email);
-            stmt.setString(5, contact);
-            stmt.setString(6, specialization);
-            stmt.executeUpdate();
-        }
+    public void insertTeacher(String firstName, String lastName, String middleName, String email, String phone, String department) throws SQLException {
+        String sql = "INSERT INTO teachers (id, first_name, last_name, middle_name, email, phone, department) VALUES (NEXT VALUE FOR GEN_LESSON_ID, ?, ?, ?, ?, ?, ?)";
+        executeUpdate(sql, firstName, lastName, middleName, email, phone, department);
     }
 
     // Get methods
@@ -337,7 +320,7 @@ public class DbManager {
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("curriculum"),
-                        rs.getString("teacher_id"),
+                        rs.getInt("teacher_id"),  // Изменено: getInt вместо getString
                         rs.getString("subjects")
                 ));
             }
@@ -351,7 +334,7 @@ public class DbManager {
                 list.add(new Subject(
                         rs.getInt("id"),
                         rs.getString("name"),
-                        rs.getString("teacher_id"),
+                        rs.getInt("teacher_id"),  // Изменено: getInt вместо getString
                         rs.getString("schedule")
                 ));
             }
@@ -415,8 +398,8 @@ public class DbManager {
                         rs.getString("last_name"),
                         rs.getString("middle_name"),
                         rs.getString("email"),
-                        rs.getString("contact"),
-                        rs.getString("specialization")
+                        rs.getString("phone"),  // Изменено с "contact" на "phone"
+                        rs.getString("department")  // Изменено с "specialization" на "department"
                 ));
             }
         }

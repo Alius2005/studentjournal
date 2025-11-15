@@ -6,19 +6,19 @@ public class Teacher {
     private String lastName;
     private String middleName;
     private String email;
-    private String contact;
-    private String specialization;
+    private String phone;
+    private String department;
 
     public Teacher() {}
 
-    public Teacher(int id, String firstName, String lastName, String middleName, String email, String contact, String specialization) {
+    public Teacher(int id, String firstName, String lastName, String middleName, String email, String phone, String department) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.middleName = middleName;
         this.email = email;
-        this.contact = contact;
-        this.specialization = specialization;
+        this.phone = phone;
+        this.department = department;
     }
 
     public int getId() {
@@ -56,17 +56,17 @@ public class Teacher {
         this.email = email;
     }
 
-    public String getContact() {
-        return contact;
+    public String getPhone() {
+        return phone;
     }
-    public void setContact(String contact) {
-        this.contact = contact;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public String getSpecialization() {
-        return specialization;
+    public String getDepartment() {
+        return department;
     }
-    public void setSpecialization(String specialization) {
-        this.specialization = specialization;
+    public void setDepartment(String department) {
+        this.department = this.department;
     }
 }

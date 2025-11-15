@@ -4,12 +4,12 @@ public class Group {
     private int id;
     private String name;
     private String curriculum;
-    private String teacher;
+    private int teacher;
     private String subjects;
 
     public Group() {}
 
-    public Group(int id, String name, String curriculum, String teacher, String subjects) {
+    public Group(int id, String name, String curriculum, int teacher, String subjects) {
         this.id = id;
         this.name = name;
         this.curriculum = curriculum;
@@ -26,8 +26,8 @@ public class Group {
     public String getCurriculum() { return curriculum; }
     public void setCurriculum(String curriculum) { this.curriculum = curriculum; }
 
-    public String getTeacher() { return teacher; }
-    public void setTeacher(String teacher) { this.teacher = teacher; }
+    public int getTeacher() { return teacher; }
+    public void setTeacher(int teacher) { this.teacher = teacher; }
 
     public String getSubjects() { return subjects; }
     public void setSubjects(String subjects) { this.subjects = subjects; }
