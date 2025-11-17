@@ -21,7 +21,7 @@ public class MainFrame extends JFrame {
     private CardLayout formCardLayout;
     private JButton toggleToolPanelBtn;
     private boolean toolPanelVisible = true;
-    private String currentEntity = "students"; // Текущий выбранный тип: students, groups, etc.
+    private String currentEntity = "students";
     private boolean isEditMode = false; // Флаг для режима редактирования
     private int editId = -1; // ID редактируемой записи
 
@@ -80,7 +80,7 @@ public class MainFrame extends JFrame {
         entityPanel.add(teacherBtn);
 
         // Действия
-        JPanel actionPanel = new JPanel(new GridLayout(3, 1)); // Изменено на 3, так как кнопка "Показать" удалена
+        JPanel actionPanel = new JPanel(new GridLayout(3, 1));
         actionPanel.setBorder(BorderFactory.createTitledBorder("Действия"));
         JButton addBtn = new JButton("Добавить");
         JButton editBtn = new JButton("Изменить");
@@ -266,7 +266,7 @@ public class MainFrame extends JFrame {
         studentFirstNameField = new JTextField();
         studentLastNameField = new JTextField();
         studentMiddleNameField = new JTextField();
-        studentBirthDateSpinner = new JSpinner(new DaySpinnerDateModel()); // Используем кастомную модель для изменения только дня
+        studentBirthDateSpinner = new JSpinner(new DaySpinnerDateModel());
         JSpinner.DateEditor birthDateEditor = new JSpinner.DateEditor(studentBirthDateSpinner, "yyyy-MM-dd");
         studentBirthDateSpinner.setEditor(birthDateEditor);
         studentGroupIdField = new JTextField();
@@ -770,7 +770,7 @@ public class MainFrame extends JFrame {
             for (int i = 0; i < teachers.size(); i++) {
                 Teacher t = teachers.get(i);
                 data[i][0] = t.getId();
-                data[i][1] = t.getFirstName() + " " + t.getMiddleName() + " " + t.getLastName();
+                data[i][1] = t.getLastName() + " " + t.getFirstName() + " " + t.getMiddleName();
                 data[i][2] = t.getEmail();
                 data[i][3] = t.getPhone();
                 data[i][4] = t.getDepartment();

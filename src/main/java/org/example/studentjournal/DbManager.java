@@ -181,7 +181,7 @@ public class DbManager {
                                 "last_name VARCHAR(100) NOT NULL, " +
                                 "middle_name VARCHAR(100), " +
                                 "password_hash VARCHAR(128) NOT NULL, " +
-                                "role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'starosta', 'dean'))" +
+                                "role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'TEACHER', 'HEAD_STUDENT', 'STUDENT')) " +
                                 ")"
                 );
             } catch (SQLException e) {
@@ -259,6 +259,10 @@ public class DbManager {
         String sql = "UPDATE teachers SET first_name = ?, last_name = ?, middle_name = ?, email = ?, phone = ?, department = ? WHERE id = ?";
         executeUpdate(sql, firstName, lastName, middleName, email, phone, department, id);
     }
+    public void updateUser(int id, String firstName, String lastName, String middleName, String passwordHash, String role, Integer groupId) throws SQLException {
+        String sql = "UPDATE users SET first_name = ?, last_name = ?, middle_name = ?, password_hash = ?, role = ?, group_id = ? WHERE id = ?";
+        executeUpdate(sql, firstName, lastName, middleName, passwordHash, role, groupId, id);
+    }
 
     // Insert methods
     public void insertStudent(String firstName, String lastName, String middleName, LocalDate birthDate, int groupId, String contact, String email) throws SQLException {
@@ -289,8 +293,12 @@ public class DbManager {
         executeUpdate(sql, subjectId, pairNumber, type, roomNumber, buildingNumber, sqlDate);
     }
     public void insertTeacher(String firstName, String lastName, String middleName, String email, String phone, String department) throws SQLException {
-        String sql = "INSERT INTO teachers (id, first_name, last_name, middle_name, email, phone, department) VALUES (NEXT VALUE FOR GEN_LESSON_ID, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO teachers (id, first_name, last_name, middle_name, email, phone, department) VALUES (NEXT VALUE FOR GEN_TEACHER_ID, ?, ?, ?, ?, ?, ?)";
         executeUpdate(sql, firstName, lastName, middleName, email, phone, department);
+    }
+    public void insertUser(String firstName, String lastName, String middleName, String passwordHash, String role, Integer groupId) throws SQLException {
+        String sql = "INSERT INTO users (id, first_name, last_name, middle_name, password_hash, role, group_id) VALUES (NEXT VALUE FOR GEN_USER_ID, ?, ?, ?, ?, ?, ?)";
+        executeUpdate(sql, firstName, lastName, middleName, passwordHash, role, groupId);
     }
 
     // Get methods
@@ -320,7 +328,7 @@ public class DbManager {
                         rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("curriculum"),
-                        rs.getInt("teacher_id"),  // Изменено: getInt вместо getString
+                        rs.getInt("teacher_id"),
                         rs.getString("subjects")
                 ));
             }
@@ -334,7 +342,7 @@ public class DbManager {
                 list.add(new Subject(
                         rs.getInt("id"),
                         rs.getString("name"),
-                        rs.getInt("teacher_id"),  // Изменено: getInt вместо getString
+                        rs.getInt("teacher_id"),
                         rs.getString("schedule")
                 ));
             }
@@ -398,12 +406,29 @@ public class DbManager {
                         rs.getString("last_name"),
                         rs.getString("middle_name"),
                         rs.getString("email"),
-                        rs.getString("phone"),  // Изменено с "contact" на "phone"
-                        rs.getString("department")  // Изменено с "specialization" на "department"
+                        rs.getString("phone"),
+                        rs.getString("department")
                 ));
             }
         }
         return teachers;
+    }
+    public List<User> getUsers() throws SQLException {
+        List<User> list = new ArrayList<>();
+        try (ResultSet rs = executeQuery("SELECT * FROM users")) {
+            while (rs.next()) {
+                list.add(new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("middle_name"),
+                        rs.getString("password_hash"),
+                        rs.getString("role"),
+                        rs.getInt("group_id")  // Integer, может быть null
+                ));
+            }
+        }
+        return list;
     }
 
     // Delete methods
@@ -434,6 +459,87 @@ public class DbManager {
     public void deleteTeacher(int id) throws SQLException {
         String sql = "DELETE FROM teachers WHERE id = ?";
         executeUpdate(sql, id);
+    }
+    public void deleteUser(int id) throws SQLException {
+        String sql = "DELETE FROM users WHERE id = ?";
+        executeUpdate(sql, id);
+    }
+
+    public void updateAttendanceByGroup(int attendanceId, boolean isPresent, int groupId) throws SQLException {
+        // Проверка группы обрабатывается в сервисе/контроллере
+        String sql = "UPDATE attendance SET is_present = ? WHERE id = ? AND student_id IN (SELECT id FROM students WHERE group_id = ?)";
+        executeUpdate(sql, isPresent ? 1 : 0, attendanceId, groupId);
+    }
+    public User findUserByUsername(String username) throws SQLException {
+        // Предполагаем, что username - это firstName + " " + lastName
+        String[] parts = username.split(" ");
+        if (parts.length < 2) return null;
+        String sql = "SELECT * FROM users WHERE first_name = ? AND last_name = ?";
+        try (ResultSet rs = executeQuery(sql, parts[0], parts[1])) {
+            if (rs.next()) {
+                return new User(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("middle_name"),
+                        rs.getString("password_hash"),
+                        rs.getString("role"),
+                        rs.getInt("group_id")
+                );
+            }
+        }
+        return null;
+    }
+    public List<Student> getStudentsByGroup(int groupId) throws SQLException {
+        List<Student> list = new ArrayList<>();
+        String sql = "SELECT * FROM students WHERE group_id = ?";
+        try (ResultSet rs = executeQuery(sql, groupId)) {
+            while (rs.next()) {
+                list.add(new Student(
+                        rs.getInt("id"),
+                        rs.getString("first_name"),
+                        rs.getString("last_name"),
+                        rs.getString("middle_name"),
+                        rs.getDate("birth_date").toLocalDate(),
+                        rs.getInt("group_id"),
+                        rs.getString("contact"),
+                        rs.getString("email")
+                ));
+            }
+        }
+        return list;
+    }
+    public List<Grade> getGradesByGroup(int groupId) throws SQLException {
+        List<Grade> list = new ArrayList<>();
+        String sql = "SELECT g.* FROM grades g JOIN students s ON g.student_id = s.id WHERE s.group_id = ?";
+        try (ResultSet rs = executeQuery(sql, groupId)) {
+            while (rs.next()) {
+                list.add(new Grade(
+                        rs.getInt("id"),
+                        rs.getInt("student_id"),
+                        rs.getInt("subject_id"),
+                        rs.getString("grade_type"),
+                        rs.getInt("grade_value"),
+                        rs.getDate("grade_date").toLocalDate()
+                ));
+            }
+        }
+        return list;
+    }
+    public List<Attendance> getAttendancesByGroup(int groupId) throws SQLException {
+        List<Attendance> list = new ArrayList<>();
+        String sql = "SELECT a.* FROM attendance a JOIN students s ON a.student_id = s.id WHERE s.group_id = ?";
+        try (ResultSet rs = executeQuery(sql, groupId)) {
+            while (rs.next()) {
+                list.add(new Attendance(
+                        rs.getInt("id"),
+                        rs.getInt("student_id"),
+                        rs.getInt("lesson_id"),
+                        rs.getInt("is_present") == 1
+                ));
+            }
+        }
+        return list;
     }
 
     public void close() {
