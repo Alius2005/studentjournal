@@ -28,17 +28,28 @@ public class MainFrame extends JFrame {
     private int editId = -1; // ID редактируемой записи
 
     // Поля форм для доступа (для очистки и заполнения)
-    private JTextField studentFirstNameField, studentLastNameField, studentMiddleNameField, studentGroupIdField;
+    private JTextField studentFirstNameField, studentLastNameField, studentMiddleNameField;
     private JFormattedTextField studentContactField; // Изменено на JFormattedTextField для маски телефона
     private JTextField studentEmailField;
     private JSpinner studentBirthDateSpinner;
-    private JTextField groupNameField, groupCurriculumField, groupTeacherIdField, groupSubjectsField;
-    private JTextField subjectNameField, subjectTeacherIdField, subjectScheduleField;
-    private JTextField gradeStudentIdField, gradeSubjectIdField, gradeTypeField, gradeValueField, gradeDateField;
-    private JTextField attendanceStudentIdField, attendanceLessonIdField;
-    private JCheckBox attendancePresentCheckBox;
-    private JTextField lessonSubjectIdField, lessonPairNumberField, lessonRoomNumberField, lessonBuildingNumberField, lessonDateField;
+    private JComboBox<String> studentGroupCombo; // Заменено на combo
+
+    private JTextField groupNameField, groupCurriculumField, groupSubjectsField;
+    private JComboBox<String> groupTeacherCombo; // Заменено на combo
+
+    private JTextField subjectNameField, subjectScheduleField;
+    private JComboBox<String> subjectTeacherCombo; // Заменено на combo
+
+    private JComboBox<String> gradeStudentCombo, gradeSubjectCombo; // Заменено на combo
+    private JTextField gradeTypeField, gradeValueField, gradeDateField;
+
+    private JComboBox<String> attendanceStudentCombo, attendanceLessonCombo; // Заменено на combo
+    private JCheckBox attendancePresentCheckBox; // Добавлено для чекбокса присутствия
+
+    private JComboBox<String> lessonSubjectCombo; // Заменено на combo
+    private JTextField lessonPairNumberField, lessonRoomNumberField, lessonBuildingNumberField, lessonDateField;
     private JComboBox<String> lessonTypeComboBox;
+
     private JTextField teacherFirstNameField, teacherLastNameField, teacherMiddleNameField;
     private JFormattedTextField teacherPhoneField; // Изменено на JFormattedTextField для маски телефона
     private JTextField teacherEmailField, teacherDepartmentField;
@@ -272,10 +283,11 @@ public class MainFrame extends JFrame {
         studentFirstNameField = new JTextField();
         studentLastNameField = new JTextField();
         studentMiddleNameField = new JTextField();
-        studentBirthDateSpinner = new JSpinner(new DaySpinnerDateModel());
+        studentBirthDateSpinner = new JSpinner(new SpinnerDateModel()); // Исправлено: стандартный SpinnerDateModel
         JSpinner.DateEditor birthDateEditor = new JSpinner.DateEditor(studentBirthDateSpinner, "yyyy-MM-dd");
         studentBirthDateSpinner.setEditor(birthDateEditor);
-        studentGroupIdField = new JTextField();
+        studentGroupCombo = new JComboBox<>();
+        populateGroupCombo(studentGroupCombo);
 
         // Маска для телефона: +7 (XXX) XXX-XX-XX
         MaskFormatter phoneMask = null;
@@ -296,7 +308,7 @@ public class MainFrame extends JFrame {
         panel.add(new JLabel("Имя:")); panel.add(studentLastNameField);
         panel.add(new JLabel("Отчество:")); panel.add(studentMiddleNameField);
         panel.add(new JLabel("Дата рождения:")); panel.add(studentBirthDateSpinner);
-        panel.add(new JLabel("ID группы:")); panel.add(studentGroupIdField);
+        panel.add(new JLabel("Группа:")); panel.add(studentGroupCombo);
         panel.add(new JLabel("Контакт:")); panel.add(studentContactField);
         panel.add(new JLabel("Email:")); panel.add(studentEmailField);
         panel.add(saveBtn);
@@ -308,7 +320,8 @@ public class MainFrame extends JFrame {
                 String middleName = studentMiddleNameField.getText().trim();
                 Date birthDateUtil = (Date) studentBirthDateSpinner.getValue();
                 LocalDate birthDate = LocalDate.ofInstant(birthDateUtil.toInstant(), ZoneId.systemDefault());
-                int groupId = Integer.parseInt(studentGroupIdField.getText().trim());
+                String selectedGroup = (String) studentGroupCombo.getSelectedItem();
+                int groupId = selectedGroup != null ? Integer.parseInt(selectedGroup.substring(selectedGroup.lastIndexOf("(") + 1, selectedGroup.lastIndexOf(")"))) : 0;
                 String contact = studentContactField.getText().trim();
                 String email = studentEmailField.getText().trim();
 
@@ -330,13 +343,14 @@ public class MainFrame extends JFrame {
         JPanel panel = new JPanel(new GridLayout(5, 2));
         groupNameField = new JTextField();
         groupCurriculumField = new JTextField();
-        groupTeacherIdField = new JTextField();
+        groupTeacherCombo = new JComboBox<>();
+        populateTeacherCombo(groupTeacherCombo);
         groupSubjectsField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
         panel.add(new JLabel("Название:")); panel.add(groupNameField);
         panel.add(new JLabel("Учебный план:")); panel.add(groupCurriculumField);
-        panel.add(new JLabel("ID преподавателя:")); panel.add(groupTeacherIdField);
+        panel.add(new JLabel("Преподаватель:")); panel.add(groupTeacherCombo);
         panel.add(new JLabel("Предметы:")); panel.add(groupSubjectsField);
         panel.add(saveBtn);
 
@@ -344,7 +358,8 @@ public class MainFrame extends JFrame {
             try {
                 String name = groupNameField.getText().trim();
                 String curriculum = groupCurriculumField.getText().trim();
-                int teacherId = Integer.parseInt(groupTeacherIdField.getText().trim());
+                String selectedTeacher = (String) groupTeacherCombo.getSelectedItem();
+                int teacherId = selectedTeacher != null ? Integer.parseInt(selectedTeacher.substring(selectedTeacher.lastIndexOf("(") + 1, selectedTeacher.lastIndexOf(")"))) : 0;
                 String subjects = groupSubjectsField.getText().trim();
 
                 if (isEditMode) {
@@ -364,19 +379,21 @@ public class MainFrame extends JFrame {
     private JPanel createSubjectForm() {
         JPanel panel = new JPanel(new GridLayout(4, 2));
         subjectNameField = new JTextField();
-        subjectTeacherIdField = new JTextField();
+        subjectTeacherCombo = new JComboBox<>();
+        populateTeacherCombo(subjectTeacherCombo);
         subjectScheduleField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
         panel.add(new JLabel("Название:")); panel.add(subjectNameField);
-        panel.add(new JLabel("ID преподавателя:")); panel.add(subjectTeacherIdField);
+        panel.add(new JLabel("Преподаватель:")); panel.add(subjectTeacherCombo);
         panel.add(new JLabel("Расписание:")); panel.add(subjectScheduleField);
         panel.add(saveBtn);
 
         saveBtn.addActionListener(e -> {
             try {
                 String name = subjectNameField.getText().trim();
-                int teacherId = Integer.parseInt(subjectTeacherIdField.getText().trim());
+                String selectedTeacher = (String) subjectTeacherCombo.getSelectedItem();
+                int teacherId = selectedTeacher != null ? Integer.parseInt(selectedTeacher.substring(selectedTeacher.lastIndexOf("(") + 1, selectedTeacher.lastIndexOf(")"))) : 0;
                 String schedule = subjectScheduleField.getText().trim();
 
                 if (isEditMode) {
@@ -395,15 +412,17 @@ public class MainFrame extends JFrame {
 
     private JPanel createGradeForm() {
         JPanel panel = new JPanel(new GridLayout(6, 2));
-        gradeStudentIdField = new JTextField();
-        gradeSubjectIdField = new JTextField();
+        gradeStudentCombo = new JComboBox<>();
+        populateStudentCombo(gradeStudentCombo);
+        gradeSubjectCombo = new JComboBox<>();
+        populateSubjectCombo(gradeSubjectCombo);
         gradeTypeField = new JTextField();
         gradeValueField = new JTextField();
         gradeDateField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
-        panel.add(new JLabel("ID студента:")); panel.add(gradeStudentIdField);
-        panel.add(new JLabel("ID предмета:")); panel.add(gradeSubjectIdField);
+        panel.add(new JLabel("Студент:")); panel.add(gradeStudentCombo);
+        panel.add(new JLabel("Предмет:")); panel.add(gradeSubjectCombo);
         panel.add(new JLabel("Тип оценки:")); panel.add(gradeTypeField);
         panel.add(new JLabel("Значение:")); panel.add(gradeValueField);
         panel.add(new JLabel("Дата:")); panel.add(gradeDateField);
@@ -411,8 +430,10 @@ public class MainFrame extends JFrame {
 
         saveBtn.addActionListener(e -> {
             try {
-                int studentId = Integer.parseInt(gradeStudentIdField.getText().trim());
-                int subjectId = Integer.parseInt(gradeSubjectIdField.getText().trim());
+                String selectedStudent = (String) gradeStudentCombo.getSelectedItem();
+                int studentId = selectedStudent != null ? Integer.parseInt(selectedStudent.substring(selectedStudent.lastIndexOf("(") + 1, selectedStudent.lastIndexOf(")"))) : 0;
+                String selectedSubject = (String) gradeSubjectCombo.getSelectedItem();
+                int subjectId = selectedSubject != null ? Integer.parseInt(selectedSubject.substring(selectedSubject.lastIndexOf("(") + 1, selectedSubject.lastIndexOf(")"))) : 0;
                 String gradeType = gradeTypeField.getText().trim();
                 int gradeValue = Integer.parseInt(gradeValueField.getText().trim());
                 LocalDate gradeDate = LocalDate.parse(gradeDateField.getText().trim());
@@ -433,20 +454,24 @@ public class MainFrame extends JFrame {
 
     private JPanel createAttendanceForm() {
         JPanel panel = new JPanel(new GridLayout(4, 2));
-        attendanceStudentIdField = new JTextField();
-        attendanceLessonIdField = new JTextField();
+        attendanceStudentCombo = new JComboBox<>();
+        populateStudentCombo(attendanceStudentCombo);
+        attendanceLessonCombo = new JComboBox<>();
+        populateLessonCombo(attendanceLessonCombo);
         attendancePresentCheckBox = new JCheckBox("Присутствовал");
         JButton saveBtn = new JButton("Сохранить");
 
-        panel.add(new JLabel("ID студента:")); panel.add(attendanceStudentIdField);
-        panel.add(new JLabel("ID урока:")); panel.add(attendanceLessonIdField);
+        panel.add(new JLabel("Студент:")); panel.add(attendanceStudentCombo);
+        panel.add(new JLabel("Урок:")); panel.add(attendanceLessonCombo);
         panel.add(new JLabel("Присутствие:")); panel.add(attendancePresentCheckBox);
         panel.add(saveBtn);
 
         saveBtn.addActionListener(e -> {
             try {
-                int studentId = Integer.parseInt(attendanceStudentIdField.getText().trim());
-                int lessonId = Integer.parseInt(attendanceLessonIdField.getText().trim());
+                String selectedStudent = (String) attendanceStudentCombo.getSelectedItem();
+                int studentId = selectedStudent != null ? Integer.parseInt(selectedStudent.substring(selectedStudent.lastIndexOf("(") + 1, selectedStudent.lastIndexOf(")"))) : 0;
+                String selectedLesson = (String) attendanceLessonCombo.getSelectedItem();
+                int lessonId = selectedLesson != null ? Integer.parseInt(selectedLesson.substring(selectedLesson.lastIndexOf("(") + 1, selectedLesson.lastIndexOf(")"))) : 0;
                 boolean isPresent = attendancePresentCheckBox.isSelected();
 
                 if (isEditMode) {
@@ -465,7 +490,8 @@ public class MainFrame extends JFrame {
 
     private JPanel createLessonForm() {
         JPanel panel = new JPanel(new GridLayout(7, 2));
-        lessonSubjectIdField = new JTextField();
+        lessonSubjectCombo = new JComboBox<>();
+        populateSubjectCombo(lessonSubjectCombo);
         lessonPairNumberField = new JTextField();
         lessonTypeComboBox = new JComboBox<>(new String[]{"ЛБ", "ПР", "ЛК"});
         lessonRoomNumberField = new JTextField();
@@ -473,7 +499,7 @@ public class MainFrame extends JFrame {
         lessonDateField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
-        panel.add(new JLabel("ID предмета:")); panel.add(lessonSubjectIdField);
+        panel.add(new JLabel("Предмет:")); panel.add(lessonSubjectCombo);
         panel.add(new JLabel("Номер пары:")); panel.add(lessonPairNumberField);
         panel.add(new JLabel("Тип:")); panel.add(lessonTypeComboBox);
         panel.add(new JLabel("Номер комнаты:")); panel.add(lessonRoomNumberField);
@@ -483,7 +509,8 @@ public class MainFrame extends JFrame {
 
         saveBtn.addActionListener(e -> {
             try {
-                int subjectId = Integer.parseInt(lessonSubjectIdField.getText().trim());
+                String selectedSubject = (String) lessonSubjectCombo.getSelectedItem();
+                int subjectId = selectedSubject != null ? Integer.parseInt(selectedSubject.substring(selectedSubject.lastIndexOf("(") + 1, selectedSubject.lastIndexOf(")"))) : 0;
                 int pairNumber = Integer.parseInt(lessonPairNumberField.getText().trim());
                 String type = (String) lessonTypeComboBox.getSelectedItem();
                 String roomNumber = lessonRoomNumberField.getText().trim();
@@ -564,35 +591,35 @@ public class MainFrame extends JFrame {
                 studentLastNameField.setText("");
                 studentMiddleNameField.setText("");
                 studentBirthDateSpinner.setValue(new Date());
-                studentGroupIdField.setText("");
+                if (studentGroupCombo.getItemCount() > 0) studentGroupCombo.setSelectedIndex(0);
                 studentContactField.setText("");
                 studentEmailField.setText("");
                 break;
             case "groups":
                 groupNameField.setText("");
                 groupCurriculumField.setText("");
-                groupTeacherIdField.setText("");
+                if (groupTeacherCombo.getItemCount() > 0) groupTeacherCombo.setSelectedIndex(0);
                 groupSubjectsField.setText("");
                 break;
             case "subjects":
                 subjectNameField.setText("");
-                subjectTeacherIdField.setText("");
+                if (subjectTeacherCombo.getItemCount() > 0) subjectTeacherCombo.setSelectedIndex(0);
                 subjectScheduleField.setText("");
                 break;
             case "grades":
-                gradeStudentIdField.setText("");
-                gradeSubjectIdField.setText("");
+                if (gradeStudentCombo.getItemCount() > 0) gradeStudentCombo.setSelectedIndex(0);
+                if (gradeSubjectCombo.getItemCount() > 0) gradeSubjectCombo.setSelectedIndex(0);
                 gradeTypeField.setText("");
                 gradeValueField.setText("");
                 gradeDateField.setText("");
                 break;
             case "attendance":
-                attendanceStudentIdField.setText("");
-                attendanceLessonIdField.setText("");
+                if (attendanceStudentCombo.getItemCount() > 0) attendanceStudentCombo.setSelectedIndex(0);
+                if (attendanceLessonCombo.getItemCount() > 0) attendanceLessonCombo.setSelectedIndex(0);
                 attendancePresentCheckBox.setSelected(false);
                 break;
             case "lessons":
-                lessonSubjectIdField.setText("");
+                if (lessonSubjectCombo.getItemCount() > 0) lessonSubjectCombo.setSelectedIndex(0);
                 lessonPairNumberField.setText("");
                 lessonTypeComboBox.setSelectedIndex(0);
                 lessonRoomNumberField.setText("");
@@ -621,7 +648,13 @@ public class MainFrame extends JFrame {
                     studentLastNameField.setText(s.getLastName());
                     studentMiddleNameField.setText(s.getMiddleName());
                     studentBirthDateSpinner.setValue(Date.from(s.getBirthDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-                    studentGroupIdField.setText(String.valueOf(s.getGroupId()));
+                    for (int i = 0; i < studentGroupCombo.getItemCount(); i++) {
+                        String item = (String) studentGroupCombo.getItemAt(i);
+                        if (item.endsWith("(" + s.getGroupId() + ")")) {
+                            studentGroupCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
                     studentContactField.setText(s.getContact());
                     studentEmailField.setText(s.getEmail());
                     break;
@@ -631,7 +664,13 @@ public class MainFrame extends JFrame {
                     editId = g.getId();
                     groupNameField.setText(g.getName());
                     groupCurriculumField.setText(g.getCurriculum());
-                    groupTeacherIdField.setText(String.valueOf(g.getTeacher()));
+                    for (int i = 0; i < groupTeacherCombo.getItemCount(); i++) {
+                        String item = (String) groupTeacherCombo.getItemAt(i);
+                        if (item.endsWith("(" + g.getTeacher() + ")")) {
+                            groupTeacherCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
                     groupSubjectsField.setText(g.getSubjects());
                     break;
                 case "subjects":
@@ -639,15 +678,33 @@ public class MainFrame extends JFrame {
                     Subject subj = subjects.get(row);
                     editId = subj.getId();
                     subjectNameField.setText(subj.getName());
-                    subjectTeacherIdField.setText(String.valueOf(subj.getTeacher()));
+                    for (int i = 0; i < subjectTeacherCombo.getItemCount(); i++) {
+                        String item = (String) subjectTeacherCombo.getItemAt(i);
+                        if (item.endsWith("(" + subj.getTeacher() + ")")) {
+                            subjectTeacherCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
                     subjectScheduleField.setText(subj.getSchedule());
                     break;
                 case "grades":
                     List<Grade> grades = dbManager.getGrades();
                     Grade gr = grades.get(row);
                     editId = gr.getId();
-                    gradeStudentIdField.setText(String.valueOf(gr.getStudentId()));
-                    gradeSubjectIdField.setText(String.valueOf(gr.getSubjectId()));
+                    for (int i = 0; i < gradeStudentCombo.getItemCount(); i++) {
+                        String item = (String) gradeStudentCombo.getItemAt(i);
+                        if (item.endsWith("(" + gr.getStudentId() + ")")) {
+                            gradeStudentCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                    for (int i = 0; i < gradeSubjectCombo.getItemCount(); i++) {
+                        String item = (String) gradeSubjectCombo.getItemAt(i);
+                        if (item.endsWith("(" + gr.getSubjectId() + ")")) {
+                            gradeSubjectCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
                     gradeTypeField.setText(gr.getGradeType());
                     gradeValueField.setText(String.valueOf(gr.getGradeValue()));
                     gradeDateField.setText(gr.getGradeDate().toString());
@@ -656,15 +713,33 @@ public class MainFrame extends JFrame {
                     List<Attendance> attendances = dbManager.getAttendance();
                     Attendance att = attendances.get(row);
                     editId = att.getId();
-                    attendanceStudentIdField.setText(String.valueOf(att.getStudentId()));
-                    attendanceLessonIdField.setText(String.valueOf(att.getLessonId()));
+                    for (int i = 0; i < attendanceStudentCombo.getItemCount(); i++) {
+                        String item = (String) attendanceStudentCombo.getItemAt(i);
+                        if (item.endsWith("(" + att.getStudentId() + ")")) {
+                            attendanceStudentCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                    for (int i = 0; i < attendanceLessonCombo.getItemCount(); i++) {
+                        String item = (String) attendanceLessonCombo.getItemAt(i);
+                        if (item.endsWith("(" + att.getLessonId() + ")")) {
+                            attendanceLessonCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
                     attendancePresentCheckBox.setSelected(att.isPresent());
                     break;
                 case "lessons":
                     List<Lesson> lessons = dbManager.getLessons();
                     Lesson l = lessons.get(row);
                     editId = l.getId();
-                    lessonSubjectIdField.setText(String.valueOf(l.getSubjectId()));
+                    for (int i = 0; i < lessonSubjectCombo.getItemCount(); i++) {
+                        String item = (String) lessonSubjectCombo.getItemAt(i);
+                        if (item.endsWith("(" + l.getSubjectId() + ")")) {
+                            lessonSubjectCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
                     lessonPairNumberField.setText(String.valueOf(l.getPairNumber()));
                     lessonTypeComboBox.setSelectedItem(l.getType());
                     lessonRoomNumberField.setText(l.getRoomNumber());
@@ -682,6 +757,66 @@ public class MainFrame extends JFrame {
                     teacherPhoneField.setText(t.getPhone());
                     teacherDepartmentField.setText(t.getDepartment());
                     break;
+            }
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void populateStudentCombo(JComboBox<String> combo) {
+        try {
+            combo.removeAllItems();
+            List<Student> students = dbManager.getStudents();
+            for (Student s : students) {
+                combo.addItem(s.getLastName() + " " + s.getFirstName() + " (" + s.getId() + ")");
+            }
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void populateGroupCombo(JComboBox<String> combo) {
+        try {
+            combo.removeAllItems();
+            List<Group> groups = dbManager.getGroups();
+            for (Group g : groups) {
+                combo.addItem(g.getName() + " (" + g.getId() + ")");
+            }
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void populateTeacherCombo(JComboBox<String> combo) {
+        try {
+            combo.removeAllItems();
+            List<Teacher> teachers = dbManager.getTeachers();
+            for (Teacher t : teachers) {
+                combo.addItem(t.getLastName() + " " + t.getFirstName() + " (" + t.getId() + ")");
+            }
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void populateSubjectCombo(JComboBox<String> combo) {
+        try {
+            combo.removeAllItems();
+            List<Subject> subjects = dbManager.getSubjects();
+            for (Subject s : subjects) {
+                combo.addItem(s.getName() + " (" + s.getId() + ")");
+            }
+        } catch (SQLException ex) {
+            showError(ex);
+        }
+    }
+
+    private void populateLessonCombo(JComboBox<String> combo) {
+        try {
+            combo.removeAllItems();
+            List<Lesson> lessons = dbManager.getLessons();
+            for (Lesson l : lessons) {
+                combo.addItem("Урок " + l.getId() + " (" + l.getSubjectId() + ")");
             }
         } catch (SQLException ex) {
             showError(ex);
