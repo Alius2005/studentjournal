@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Журнал Группы</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>Журнал Группы: <span th:text="${group.name}"></span></h1>
+<a th:href="@{/groups}">Назад к группам</a>
+
+<h2>Студенты и Оценки</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Студент</th>
+        <th th:each="subject : ${subjects}" th:text="${subject.name}"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="student : ${students}">
+        <td th:text="${student.name}"></td>
+        <td th:each="grade : ${student.grades}"
+            th:class="${grade.value < 4 ? 'low-grade' : 'good-grade'}"
+            th:text="${grade.value}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Посещаемость</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Студент</th>
+        <th th:each="lesson : ${lessons}" th:text="${lesson.date}"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="student : ${students}">
+        <td th:text="${student.name}"></td>
+        <td th:each="attendance : ${student.attendances}"
+            th:class="${attendance.present ? 'present' : 'absent'}">
+                    <span th:if="${!#authorization.expression('hasRole(''HEAD_STUDENT'') and hasRole(''TEACHER'') and hasRole(''ADMIN'')')}"
+                          th:text="${attendance.present ? 'Присутствовал' : 'Отсутствовал'}"></span>
+            <form th:if="${#authorization.expression('hasRole(''HEAD_STUDENT'') or hasRole(''TEACHER'') or hasRole(''ADMIN'')')}"
+                  th:action="@{/attendance/update}" method="post" style="display:inline;">
+                <input type="hidden" name="attendanceId" th:value="${attendance.id}">
+                <input type="hidden" name="groupId" th:value="${group.id}">
+                <button type="submit" name="present" value="true" th:if="${!attendance.present}">Отметить присутствие</button>
+                <button type="submit" name="present" value="false" th:if="${attendance.present}">Отметить отсутствие</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

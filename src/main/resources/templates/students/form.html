@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${student.id != null} ? 'Редактировать Студента' : 'Добавить Студента'"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1 th:text="${student.id != null} ? 'Редактировать Студента' : 'Добавить Студента'"></h1>
+<a th:href="@{/students}">Назад к списку</a>
+
+<div sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+    <form th:action="${student.id != null} ? @{/students/save/{id}(id=${student.id})} : @{/students/save}" method="post">
+        <div>
+            <label for="firstName">Имя:</label>
+            <input type="text" id="firstName" name="firstName" th:value="${student.firstName}" required>
+        </div>
+        <div>
+            <label for="lastName">Фамилия:</label>
+            <input type="text" id="lastName" name="lastName" th:value="${student.lastName}" required>
+        </div>
+        <div>
+            <label for="middleName">Отчество:</label>
+            <input type="text" id="middleName" name="middleName" th:value="${student.middleName}" required>
+        </div>
+        <div>
+            <label for="birthDate">Дата рождения:</label>
+            <input type="date" id="birthDate" name="birthDate" th:value="${#temporals.format(student.birthDate, 'yyyy-MM-dd')}" required>
+        </div>
+        <div>
+            <label for="groupId">Группа (ID):</label>
+            <input type="number" id="groupId" name="groupId" th:value="${student.groupId}" required>
+        </div>
+        <div>
+            <label for="contact">Контакт:</label>
+            <input type="text" id="contact" name="contact" th:value="${student.contact}" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" th:value="${student.email}" required>
+        </div>
+        <button type="submit" th:text="${student.id != null} ? 'Сохранить изменения' : 'Создать студента'"></button>
+    </form>
+
+    <div th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}"></li>
+        </ul>
+    </div>
+</div>
+
+<div sec:authorize="!hasAnyRole('ADMIN', 'TEACHER')">
+    <p>Доступ запрещён! Только администраторы и преподаватели могут редактировать студентов.</p>
+</div>
+</body>
+</html>

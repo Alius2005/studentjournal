@@ -59,9 +59,8 @@ public class GradeController {
     public String deleteGrade(@PathVariable int id) {
         Optional<Grade> gradeOpt = gradeService.getGradeById(id);
         gradeOpt.ifPresent(grade -> {
-            // Если POJO обновлен, можно использовать grade.getStudent().getGroup().getId()
             gradeService.deleteGrade(id);
         });
-        return "redirect:/grades/group/1";  // Замените на динамический groupId
+        return "redirect:/grades/group/1";
     }
 }

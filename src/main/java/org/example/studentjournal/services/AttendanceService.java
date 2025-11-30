@@ -46,7 +46,6 @@ public class AttendanceService {
         }
     }
 
-    // Методы для работы с группой (для HEAD_STUDENT: посещаемость редактирование)
     public List<Attendance> getAttendancesByGroup(int groupId) {
         try {
             return dbManager.getAttendancesByGroup(groupId);

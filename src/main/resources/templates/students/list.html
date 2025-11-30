@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Список Студентов</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>Управление Студентами</h1>
+<a th:href="@{/}">Назад на главную</a>
+
+<div sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+    <a th:href="@{/students/new}">Добавить нового студента</a>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Полное имя</th>
+            <th>Дата рождения</th>
+            <th>Группа (ID)</th>
+            <th>Контакт</th>
+            <th>Email</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="student : ${students}">
+            <td th:text="${student.id}"></td>
+            <td th:text="${student.firstName + ' ' + student.lastName + ' ' + student.middleName}"></td>
+            <td th:text="${#temporals.format(student.birthDate, 'dd.MM.yyyy')}"></td>
+            <td th:text="${student.groupId}"></td>
+            <td th:text="${student.contact}"></td>
+            <td th:text="${student.email}"></td>
+            <td>
+                <a th:href="@{/students/edit/{id}(id=${student.id})}">Редактировать</a>
+                <form th:action="@{/students/delete/{id}(id=${student.id})}" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Удалить студента?')">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div sec:authorize="!hasAnyRole('ADMIN', 'TEACHER')">
+    <p>Доступ запрещён! Только администраторы и преподаватели могут управлять студентами.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Главная - Журнал Студентов</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>Журнал Студентов</h1>
+<p>Привет, <span sec:authentication="name"></span>!</p>
+
+<nav>
+    <ul>
+        <li><a th:href="@{/groups}">Группы</a></li>
+        <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/users}">Пользователи</a></li>
+        <li sec:authorize="hasRole('TEACHER') or hasRole('ADMIN')"><a th:href="@{/subjects}">Предметы</a></li>
+        <li sec:authorize="hasRole('HEAD_STUDENT') or hasRole('TEACHER') or hasRole('ADMIN')"><a th:href="@{/journal}">Журнал</a></li>
+        <li><a th:href="@{/logout}">Выход</a></li>
+    </ul>
+</nav>
+
+<div sec:authorize="hasRole('ADMIN')">
+    <p>Вы администратор: управляйте всем.</p>
+</div>
+<div sec:authorize="hasRole('TEACHER')">
+    <p>Вы преподаватель: ставьте оценки и отмечайте посещаемость.</p>
+</div>
+<div sec:authorize="hasRole('HEAD_STUDENT')">
+    <p>Вы староста: просматривайте оценки и управляйте посещаемостью группы.</p>
+</div>
+<div sec:authorize="hasRole('STUDENT')">
+    <p>Вы студент: просматривайте свои оценки и посещаемость.</p>
+</div>
+</body>
+</html>

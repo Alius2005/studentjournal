@@ -31,7 +31,7 @@ public class UserController {
             return "users/list";
         } catch (Exception e) {
             model.addAttribute("error", "Failed to load users: " + e.getMessage());
-            return "error"; // Или перенаправление на index, в зависимости от ваших шаблонов
+            return "error";
         }
     }
 
@@ -59,7 +59,6 @@ public class UserController {
     @PostMapping
     public String saveUser(@ModelAttribute User user, Model model) {
         try {
-            // Хэшируем пароль перед сохранением только если он указан
             if (user.getPasswordHash() != null && !user.getPasswordHash().isEmpty()) {
                 user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             }
@@ -73,14 +72,14 @@ public class UserController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/delete/{id}")  // Изменено с @DeleteMapping на @PostMapping для совместимости с HTML-формами
+    @PostMapping("/delete/{id}")
     public String deleteUser(@PathVariable int id, Model model) {
         try {
             userService.deleteUser(id);
             return "redirect:/users";
         } catch (Exception e) {
             model.addAttribute("error", "Failed to delete user: " + e.getMessage());
-            return "redirect:/users"; // Или показать ошибку на странице списка
+            return "redirect:/users";
         }
     }
 }

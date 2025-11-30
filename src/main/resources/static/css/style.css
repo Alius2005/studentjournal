@@ -1,0 +1,49 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* Цвета для оценок */
+.low-grade {
+    background-color: yellow; /* Оценки <4 */
+}
+
+.good-grade {
+    background-color: lightgreen; /* Оценки >=4 */
+}
+
+/* Цвета для посещаемости */
+.present {
+    background-color: green;
+    color: white;
+}
+
+.absent {
+    background-color: red;
+    color: white;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav li {
+    display: inline;
+    margin-right: 10px;
+}

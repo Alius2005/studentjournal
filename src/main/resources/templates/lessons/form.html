@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${lesson.id != null} ? 'Редактировать Урок' : 'Добавить Урок'"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1 th:text="${lesson.id != null} ? 'Редактировать Урок' : 'Добавить Урок'"></h1>
+<a th:href="@{/lessons}">Назад к списку</a>
+
+<div sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+    <form th:action="${lesson.id != null} ? @{/lessons/save/{id}(id=${lesson.id})} : @{/lessons/save}" method="post">
+        <div>
+            <label for="subjectId">Предмет (ID):</label>
+            <input type="number" id="subjectId" name="subjectId" th:value="${lesson.subjectId}" required>
+        </div>
+        <div>
+            <label for="pairNumber">Номер пары:</label>
+            <input type="number" id="pairNumber" name="pairNumber" th:value="${lesson.pairNumber}" required>
+        </div>
+        <div>
+            <label for="type">Тип:</label>
+            <select id="type" name="type" required>
+                <option value="Лекция" th:selected="${lesson.type == 'Лекция'}">Лекция</option>
+                <option value="Практика" th:selected="${lesson.type == 'Практика'}">Практика</option>
+                <option value="Семинар" th:selected="${lesson.type == 'Семинар'}">Семинар</option>
+            </select>
+        </div>
+        <div>
+            <label for="roomNumber">Номер комнаты:</label>
+            <input type="text" id="roomNumber" name="roomNumber" th:value="${lesson.roomNumber}" required>
+        </div>
+        <div>
+            <label for="buildingNumber">Номер здания:</label>
+            <input type="text" id="buildingNumber" name="buildingNumber" th:value="${lesson.buildingNumber}" required>
+        </div>
+        <div>
+            <label for="lessonDate">Дата урока:</label>
+            <input type="date" id="lessonDate" name="lessonDate" th:value="${lesson.lessonDate}" required>
+        </div>
+        <button type="submit" th:text="${lesson.id != null} ? 'Сохранить изменения' : 'Создать урок'"></button>
+    </form>
+
+    <div th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}"></li>
+        </ul>
+    </div>
+</div>
+
+<div sec:authorize="!hasAnyRole('ADMIN', 'TEACHER')">
+    <p>Доступ запрещён! Только администраторы или преподаватели могут редактировать уроки.</p>
+</div>
+</body>
+</html>

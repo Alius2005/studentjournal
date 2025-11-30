@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${teacher.id != null} ? 'Редактировать Преподавателя' : 'Добавить Преподавателя'"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1 th:text="${teacher.id != null} ? 'Редактировать Преподавателя' : 'Добавить Преподавателя'"></h1>
+<a th:href="@{/teachers}">Назад к списку</a>
+
+<div sec:authorize="hasRole('ADMIN')">
+    <form th:action="${teacher.id != null} ? @{/teachers/save/{id}(id=${teacher.id})} : @{/teachers/save}" method="post">
+        <div>
+            <label for="firstName">Имя:</label>
+            <input type="text" id="firstName" name="firstName" th:value="${teacher.firstName}" required>
+        </div>
+        <div>
+            <label for="lastName">Фамилия:</label>
+            <input type="text" id="lastName" name="lastName" th:value="${teacher.lastName}" required>
+        </div>
+        <div>
+            <label for="middleName">Отчество:</label>
+            <input type="text" id="middleName" name="middleName" th:value="${teacher.middleName}" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" th:value="${teacher.email}" required>
+        </div>
+        <div>
+            <label for="phone">Телефон:</label>
+            <input type="tel" id="phone" name="phone" th:value="${teacher.phone}" required>
+        </div>
+        <div>
+            <label for="department">Кафедра:</label>
+            <input type="text" id="department" name="department" th:value="${teacher.department}" required>
+        </div>
+        <button type="submit" th:text="${teacher.id != null} ? 'Сохранить изменения' : 'Создать преподавателя'"></button>
+    </form>
+
+    <div th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}"></li>
+        </ul>
+    </div>
+</div>
+
+<div sec:authorize="!hasRole('ADMIN')">
+    <p>Доступ запрещён! Только администраторы могут редактировать преподавателей.</p>
+</div>
+</body>
+</html>

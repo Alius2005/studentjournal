@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${subject.id != null} ? 'Редактировать Предмет' : 'Добавить Предмет'"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1 th:text="${subject.id != null} ? 'Редактировать Предмет' : 'Добавить Предмет'"></h1>
+<a th:href="@{/subjects}">Назад к списку</a>
+
+<div sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+    <form th:action="${subject.id != null} ? @{/subjects/save/{id}(id=${subject.id})} : @{/subjects/save}" method="post">
+        <div>
+            <label for="name">Название:</label>
+            <input type="text" id="name" name="name" th:value="${subject.name}" required>
+        </div>
+        <div>
+            <label for="teacher">Преподаватель (ID пользователя):</label>
+            <input type="number" id="teacher" name="teacher" th:value="${subject.teacher}" required>
+        </div>
+        <div>
+            <label for="schedule">Расписание:</label>
+            <input type="text" id="schedule" name="schedule" th:value="${subject.schedule}" required>
+        </div>
+        <button type="submit" th:text="${subject.id != null} ? 'Сохранить изменения' : 'Создать предмет'"></button>
+    </form>
+
+    <div th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}"></li>
+        </ul>
+    </div>
+</div>
+
+<div sec:authorize="!hasAnyRole('ADMIN', 'TEACHER')">
+    <p>Доступ запрещён! Только администраторы или преподаватели могут редактировать предметы.</p>
+</div>
+</body>
+</html>

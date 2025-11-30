@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Журнал группы</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .absent { background-color: red; color: white; }
+        .present { background-color: green; color: white; }
+        .readonly { background-color: lightgray; }
+    </style>
+</head>
+<body>
+<h1>Журнал группы: <span th:text="${group.name}"></span></h1>
+<div sec:authorize="isAuthenticated()">
+    <p>Привет, <span sec:authentication="name"></span>!</p>
+    <a th:href="@{/logout}">Выход</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Студент</th>
+        <th th:each="lesson : ${lessons}" th:text="${lesson.subject.name} + ' (' + ${lesson.date} + ')'"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="student : ${students}">
+        <td th:text="${student.name}"></td>
+        <!-- Для каждого урока: оценка и посещаемость -->
+        <td th:each="lesson : ${lessons}">
+            <div>
+                <!-- Оценка: только просмотр для HEAD_STUDENT, редактирование для TEACHER/ADMIN -->
+                <span th:if="${#authorization.expression('hasRole(''HEAD_STUDENT'')')}"
+                      th:text="${grades[student.id + '_' + lesson.id] ?: 'Нет'}" class="readonly"></span>
+                <form th:if="${#authorization.expression('hasRole(''TEACHER'') or hasRole(''ADMIN'')')}"
+                      th:action="@{/grades/update}" method="post">
+                    <input type="hidden" name="studentId" th:value="${student.id}">
+                    <input type="hidden" name="lessonId" th:value="${lesson.id}">
+                    <input type="number" name="value" th:value="${grades[student.id + '_' + lesson.id]}" min="1" max="5">
+                    <button type="submit">Обновить</button>
+                </form>
+            </div>
+            <div>
+                <!-- Посещаемость: редактируемая для HEAD_STUDENT и выше -->
+                <span th:if="${attendances[student.id + '_' + lesson.id] == 'PRESENT'}" class="present">Присутствует</span>
+                <span th:if="${attendances[student.id + '_' + lesson.id] == 'ABSENT'}" class="absent">Отсутствует</span>
+                <span th:if="${attendances[student.id + '_' + lesson.id] == null}">Не отмечено</span>
+
+                <form th:if="${#authorization.expression('hasRole(''TEACHER'') or hasRole(''ADMIN'') or hasRole(''HEAD_STUDENT'')')}"
+                      th:action="@{/attendance/update}" method="post" style="display:inline;">
+                    <input type="hidden" name="studentId" th:value="${student.id}">
+                    <input type="hidden" name="lessonId" th:value="${lesson.id}">
+                    <input type="hidden" name="groupId" th:value="${group.id}">
+                    <button type="submit" name="status" value="PRESENT">Присутствует</button>
+                    <button type="submit" name="status" value="ABSENT">Отсутствует</button>
+                </form>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<a th:href="@{/journal/list}">К списку журналов</a>
+<a th:href="@{/}">На главную</a>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package org.example.studentjournal;
 
+import org.springframework.boot.SpringApplication;
 import javax.swing.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ public class Main {
         System.out.println("Выберите интерфейс:");
         System.out.println("1. Графический интерфейс (GUI)");
         System.out.println("2. Консольный интерфейс");
+        System.out.println("3. Веб-интерфейс (Spring Boot)");  // Новая опция
 
         int interfaceChoice;
         try {
@@ -26,6 +28,9 @@ public class Main {
         if (interfaceChoice == 1) {
             // Запуск графического интерфейса
             runGUI();
+        } else if (interfaceChoice == 3) {
+            // Запуск веб-интерфейса
+            runWeb(args);  // Передаем args для Spring Boot
         } else {
             // Запуск консольного интерфейса
             runConsole(scanner);
@@ -45,6 +50,16 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Ошибка при запуске GUI: " + e.getMessage());
+        }
+    }
+
+    private static void runWeb(String[] args) {
+        System.out.println("Запуск веб-интерфейса...");
+        try {
+            SpringApplication.run(WebApplication.class, args);  // Запуск Spring Boot
+        } catch (Exception e) {
+            System.err.println("Ошибка при запуске веб-приложения: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

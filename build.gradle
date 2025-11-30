@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id 'org.springframework.boot' version '3.2.0'
+    id 'org.springframework.boot' version '3.4.0'
     id 'io.spring.dependency-management' version '1.1.4'
 }
 
@@ -14,11 +14,13 @@ repositories {
 dependencies {
     implementation 'org.firebirdsql.jdbc:jaybird:3.0.10'
     implementation 'net.java.dev.jna:jna:5.13.0'
-    implementation 'org.slf4j:slf4j-simple:2.0.0'
+    // implementation 'org.slf4j:slf4j-simple:2.0.0'  // Stay commented!
     implementation 'com.toedter:jcalendar:1.4'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security:spring-security-web'
+    implementation 'org.springframework.security:spring-security-config'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Список Уроков</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>Управление Уроками</h1>
+<a th:href="@{/}">Назад на главную</a>
+
+<div sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+    <a th:href="@{/lessons/new}">Добавить новый урок</a>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Предмет (ID)</th>
+            <th>Номер пары</th>
+            <th>Тип</th>
+            <th>Комната</th>
+            <th>Здание</th>
+            <th>Дата</th>
+            <th>Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="lesson : ${lessons}">
+            <td th:text="${lesson.id}"></td>
+            <td th:text="${lesson.subjectId}"></td>
+            <td th:text="${lesson.pairNumber}"></td>
+            <td th:text="${lesson.type}"></td>
+            <td th:text="${lesson.roomNumber}"></td>
+            <td th:text="${lesson.buildingNumber}"></td>
+            <td th:text="${lesson.lessonDate}"></td>
+            <td>
+                <a th:href="@{/lessons/edit/{id}(id=${lesson.id})}">Редактировать</a>
+                <form th:action="@{/lessons/delete/{id}(id=${lesson.id})}" method="post" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Удалить урок?')">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div sec:authorize="!hasAnyRole('ADMIN', 'TEACHER')">
+    <p>Доступ запрещён! Только администраторы или преподаватели могут управлять уроками.</p>
+</div>
+</body>
+</html>

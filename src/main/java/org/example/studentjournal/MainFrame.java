@@ -1,8 +1,10 @@
 package org.example.studentjournal;
 
 import javax.swing.*;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -26,7 +28,9 @@ public class MainFrame extends JFrame {
     private int editId = -1; // ID редактируемой записи
 
     // Поля форм для доступа (для очистки и заполнения)
-    private JTextField studentFirstNameField, studentLastNameField, studentMiddleNameField, studentGroupIdField, studentContactField, studentEmailField;
+    private JTextField studentFirstNameField, studentLastNameField, studentMiddleNameField, studentGroupIdField;
+    private JFormattedTextField studentContactField; // Изменено на JFormattedTextField для маски телефона
+    private JTextField studentEmailField;
     private JSpinner studentBirthDateSpinner;
     private JTextField groupNameField, groupCurriculumField, groupTeacherIdField, groupSubjectsField;
     private JTextField subjectNameField, subjectTeacherIdField, subjectScheduleField;
@@ -35,7 +39,9 @@ public class MainFrame extends JFrame {
     private JCheckBox attendancePresentCheckBox;
     private JTextField lessonSubjectIdField, lessonPairNumberField, lessonRoomNumberField, lessonBuildingNumberField, lessonDateField;
     private JComboBox<String> lessonTypeComboBox;
-    private JTextField teacherFirstNameField, teacherLastNameField, teacherMiddleNameField, teacherEmailField, teacherPhoneField, teacherDepartmentField;
+    private JTextField teacherFirstNameField, teacherLastNameField, teacherMiddleNameField;
+    private JFormattedTextField teacherPhoneField; // Изменено на JFormattedTextField для маски телефона
+    private JTextField teacherEmailField, teacherDepartmentField;
 
     public MainFrame(DbManager dbManager) {
         this.dbManager = dbManager;
@@ -270,8 +276,20 @@ public class MainFrame extends JFrame {
         JSpinner.DateEditor birthDateEditor = new JSpinner.DateEditor(studentBirthDateSpinner, "yyyy-MM-dd");
         studentBirthDateSpinner.setEditor(birthDateEditor);
         studentGroupIdField = new JTextField();
-        studentContactField = new JTextField();
+
+        // Маска для телефона: +7 (XXX) XXX-XX-XX
+        MaskFormatter phoneMask = null;
+        try {
+            phoneMask = new MaskFormatter("+7 (###) ###-##-##");
+            phoneMask.setPlaceholderCharacter('_');
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        studentContactField = new JFormattedTextField(phoneMask);
+
         studentEmailField = new JTextField();
+        studentEmailField.setInputVerifier(new EmailInputVerifier());
+
         JButton saveBtn = new JButton("Сохранить");
 
         panel.add(new JLabel("Фамилия:")); panel.add(studentFirstNameField);
@@ -307,6 +325,7 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
+
     private JPanel createGroupForm() {
         JPanel panel = new JPanel(new GridLayout(5, 2));
         groupNameField = new JTextField();
@@ -341,6 +360,7 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
+
     private JPanel createSubjectForm() {
         JPanel panel = new JPanel(new GridLayout(4, 2));
         subjectNameField = new JTextField();
@@ -372,6 +392,7 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
+
     private JPanel createGradeForm() {
         JPanel panel = new JPanel(new GridLayout(6, 2));
         gradeStudentIdField = new JTextField();
@@ -409,6 +430,7 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
+
     private JPanel createAttendanceForm() {
         JPanel panel = new JPanel(new GridLayout(4, 2));
         attendanceStudentIdField = new JTextField();
@@ -440,6 +462,7 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
+
     private JPanel createLessonForm() {
         JPanel panel = new JPanel(new GridLayout(7, 2));
         lessonSubjectIdField = new JTextField();
@@ -480,13 +503,26 @@ public class MainFrame extends JFrame {
 
         return panel;
     }
+
     private JPanel createTeacherForm() {
         JPanel panel = new JPanel(new GridLayout(7, 2));
         teacherFirstNameField = new JTextField();
         teacherLastNameField = new JTextField();
         teacherMiddleNameField = new JTextField();
+
+        // Маска для телефона: +7 (XXX) XXX-XX-XX
+        MaskFormatter phoneMask = null;
+        try {
+            phoneMask = new MaskFormatter("+7 (###) ###-##-##");
+            phoneMask.setPlaceholderCharacter('_');
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        teacherPhoneField = new JFormattedTextField(phoneMask);
+
         teacherEmailField = new JTextField();
-        teacherPhoneField = new JTextField();
+        teacherEmailField.setInputVerifier(new EmailInputVerifier());
+
         teacherDepartmentField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
@@ -567,8 +603,8 @@ public class MainFrame extends JFrame {
                 teacherFirstNameField.setText("");
                 teacherLastNameField.setText("");
                 teacherMiddleNameField.setText("");
-                teacherEmailField.setText("");
                 teacherPhoneField.setText("");
+                teacherEmailField.setText("");
                 teacherDepartmentField.setText("");
                 break;
         }
@@ -671,6 +707,7 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+
     private void showGroups() {
         try {
             List<Group> groups = dbManager.getGroups();
@@ -689,6 +726,7 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+
     private void showSubjects() {
         try {
             List<Subject> subjects = dbManager.getSubjects();
@@ -706,6 +744,7 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+
     private void showGrades() {
         try {
             List<Grade> grades = dbManager.getGrades();
@@ -725,6 +764,7 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+
     private void showAttendance() {
         try {
             List<Attendance> attendances = dbManager.getAttendance();
@@ -742,6 +782,7 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+
     private void showLesson() {
         try {
             List<Lesson> lessons = dbManager.getLessons();
@@ -762,6 +803,7 @@ public class MainFrame extends JFrame {
             showError(ex);
         }
     }
+
     private void showTeachers() {
         try {
             List<Teacher> teachers = dbManager.getTeachers();
@@ -783,5 +825,25 @@ public class MainFrame extends JFrame {
 
     private void showError(Exception ex) {
         JOptionPane.showMessageDialog(this, "Ошибка: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+    }
+
+    // Внутренний класс для валидации email
+    private static class EmailInputVerifier extends javax.swing.InputVerifier {
+        @Override
+        public boolean verify(JComponent input) {
+            String text = ((JTextField) input).getText();
+            if (text.isEmpty()) return true; // Пустой email разрешен, если не требуется
+            String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+            return text.matches(emailRegex);
+        }
+
+        @Override
+        public boolean shouldYieldFocus(JComponent input) {
+            boolean valid = verify(input);
+            if (!valid) {
+                JOptionPane.showMessageDialog(input.getParent(), "Неверный формат email.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+            return valid;
+        }
     }
 }

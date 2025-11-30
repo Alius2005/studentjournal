@@ -46,7 +46,6 @@ public class GradeService {
         }
     }
 
-    // Методы для работы с группой (для HEAD_STUDENT: оценки только чтение)
     public List<Grade> getGradesByGroup(int groupId) {
         try {
             return dbManager.getGradesByGroup(groupId);

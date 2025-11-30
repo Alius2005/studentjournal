@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title th:text="${user.id != null} ? 'Редактировать Пользователя' : 'Добавить Пользователя'"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1 th:text="${user.id != null} ? 'Редактировать Пользователя' : 'Добавить Пользователя'"></h1>
+<a th:href="@{/users}">Назад к списку</a>
+
+<div sec:authorize="hasRole('ADMIN')">
+    <form th:action="${user.id != null} ? @{/users/save/{id}(id=${user.id})} : @{/users/save}" method="post">
+        <div>
+            <label for="name">Имя:</label>
+            <input type="text" id="name" name="name" th:value="${user.name}" required>
+        </div>
+        <div>
+            <label for="username">Логин:</label>
+            <input type="text" id="username" name="username" th:value="${user.username}" required>
+        </div>
+        <div th:if="${user.id == null}">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div>
+            <label for="role">Роль:</label>
+            <select id="role" name="role" required>
+                <option value="STUDENT" th:selected="${user.role == 'STUDENT'}">Студент</option>
+                <option value="HEAD_STUDENT" th:selected="${user.role == 'HEAD_STUDENT'}">Староста</option>
+                <option value="TEACHER" th:selected="${user.role == 'TEACHER'}">Преподаватель</option>
+                <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">Администратор</option>
+            </select>
+        </div>
+        <button type="submit" th:text="${user.id != null} ? 'Сохранить изменения' : 'Создать пользователя'"></button>
+    </form>
+
+    <div th:if="${errors != null}">
+        <ul>
+            <li th:each="error : ${errors}" th:text="${error}"></li>
+        </ul>
+    </div>
+</div>
+
+<div sec:authorize="!hasRole('ADMIN')">
+    <p>Доступ запрещён! Только администраторы могут редактировать пользователей.</p>
+</div>
+</body>
+</html>

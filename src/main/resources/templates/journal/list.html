@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Журналы групп</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<h1>Журналы групп</h1>
+<div sec:authorize="isAuthenticated()">
+    <p>Привет, <span sec:authentication="name"></span>!</p>
+    <a th:href="@{/logout}">Выход</a>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID Группы</th>
+        <th>Название группы</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="group : ${groups}">
+        <td th:text="${group.id}"></td>
+        <td th:text="${group.name}"></td>
+        <td>
+            <!-- Доступ для ADMIN, TEACHER или HEAD_STUDENT/TEACHER группы -->
+            <a th:if="${#authorization.expression('hasRole(''ADMIN'') or hasRole(''TEACHER'') or (hasRole(''HEAD_STUDENT'') and @userService.isHeadOfGroup(' + ${group.id} + ', authentication.name)) or (hasRole(''STUDENT'') and @userService.isInGroup(' + ${group.id} + ', authentication.name))')}"
+               th:href="@{/journal/group/{id}(id=${group.id})}">Просмотреть журнал</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div sec:authorize="hasRole('ADMIN')">
+    <a th:href="@{/groups/form}">Добавить группу</a>
+</div>
+<a th:href="@{/}">На главную</a>
+</body>
+</html>

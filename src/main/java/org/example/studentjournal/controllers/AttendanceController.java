@@ -57,7 +57,7 @@ public class AttendanceController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER') or (hasRole('HEAD_STUDENT') and @userService.isHeadOfGroup(#groupId, authentication.name))")
     @PutMapping("/group/{groupId}/{id}")
     public String updateAttendance(@PathVariable int groupId, @PathVariable int id, @ModelAttribute Attendance attendance, Authentication authentication) {
-        attendanceService.updateAttendanceByGroup(id, attendance.isPresent(), groupId);  // Исправлено: isPresent() вместо getStatus()
+        attendanceService.updateAttendanceByGroup(id, attendance.isPresent(), groupId);
         return "redirect:/attendance/group/" + groupId;
     }
 
@@ -68,6 +68,6 @@ public class AttendanceController {
         attendanceOpt.ifPresent(attendance -> {
             attendanceService.deleteAttendance(id);
         });
-        return "redirect:/attendance/group/1";  // Замените на динамический groupId, если возможно (например, через сессию или дополнительный параметр)
+        return "redirect:/attendance/group/1";
     }
 }
