@@ -32,26 +32,26 @@ public class MainFrame extends JFrame {
     private JFormattedTextField studentContactField; // Изменено на JFormattedTextField для маски телефона
     private JTextField studentEmailField;
     private JSpinner studentBirthDateSpinner;
-    private JComboBox<String> studentGroupCombo; // Заменено на combo
+    private JComboBox<String> studentGroupCombo;
 
     private JTextField groupNameField, groupCurriculumField, groupSubjectsField;
-    private JComboBox<String> groupTeacherCombo; // Заменено на combo
+    private JComboBox<String> groupTeacherCombo;
 
     private JTextField subjectNameField, subjectScheduleField;
-    private JComboBox<String> subjectTeacherCombo; // Заменено на combo
+    private JComboBox<String> subjectTeacherCombo;
 
-    private JComboBox<String> gradeStudentCombo, gradeSubjectCombo; // Заменено на combo
+    private JComboBox<String> gradeStudentCombo, gradeSubjectCombo;
     private JTextField gradeTypeField, gradeValueField, gradeDateField;
 
-    private JComboBox<String> attendanceStudentCombo, attendanceLessonCombo; // Заменено на combo
-    private JCheckBox attendancePresentCheckBox; // Добавлено для чекбокса присутствия
+    private JComboBox<String> attendanceStudentCombo, attendanceLessonCombo;
+    private JCheckBox attendancePresentCheckBox;
 
-    private JComboBox<String> lessonSubjectCombo; // Заменено на combo
+    private JComboBox<String> lessonSubjectCombo;
     private JTextField lessonPairNumberField, lessonRoomNumberField, lessonBuildingNumberField, lessonDateField;
     private JComboBox<String> lessonTypeComboBox;
 
     private JTextField teacherFirstNameField, teacherLastNameField, teacherMiddleNameField;
-    private JFormattedTextField teacherPhoneField; // Изменено на JFormattedTextField для маски телефона
+    private JFormattedTextField teacherPhoneField;
     private JTextField teacherEmailField, teacherDepartmentField;
 
     public MainFrame(DbManager dbManager) {
@@ -283,7 +283,7 @@ public class MainFrame extends JFrame {
         studentFirstNameField = new JTextField();
         studentLastNameField = new JTextField();
         studentMiddleNameField = new JTextField();
-        studentBirthDateSpinner = new JSpinner(new SpinnerDateModel()); // Исправлено: стандартный SpinnerDateModel
+        studentBirthDateSpinner = new JSpinner(new SpinnerDateModel());
         JSpinner.DateEditor birthDateEditor = new JSpinner.DateEditor(studentBirthDateSpinner, "yyyy-MM-dd");
         studentBirthDateSpinner.setEditor(birthDateEditor);
         studentGroupCombo = new JComboBox<>();
@@ -962,7 +962,6 @@ public class MainFrame extends JFrame {
         JOptionPane.showMessageDialog(this, "Ошибка: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
     }
 
-    // Внутренний класс для валидации email
     private static class EmailInputVerifier extends javax.swing.InputVerifier {
         @Override
         public boolean verify(JComponent input) {

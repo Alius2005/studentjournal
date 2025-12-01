@@ -21,31 +21,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.sql.SQLException;
 
-@SpringBootApplication  // Автоматически сканирует @Component, @Service, @Controller и т.д. в org.example.studentjournal
+@SpringBootApplication
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)  // Для @PreAuthorize в методах
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {
         SpringApplication.run(WebApplication.class, args);
         System.out.println("Веб-приложение запущено! Доступно по http://localhost:8080");
-        System.out.println("Логин: admin / пароль: admin (для ADMIN роли). Или используйте /login для формы.");
+        System.out.println("Логин: admin / пароль: admin (для ADMIN роли).");
     }
 
-    // Бин для DbManager - инжектируется в сервисы и контроллеры
-    @Bean
-    public DbManager dbManager() {
-        try {
-            Config config = new Config("settings.xml");  // Загружаем конфиг из XML (как в вашем проекте)
-            DbManager dbManager = new DbManager(config.jdbcUrl, config.jdbcUser, config.jdbcPassword, false);  // false: без GUI
-            dbManager.getConnection();  // Подключаемся к БД
-            return dbManager;
-        } catch (Exception e) {
-            throw new RuntimeException("Ошибка инициализации DbManager для веб-приложения: " + e.getMessage(), e);
-        }
-    }
-
-    // Бин для Config (если нужно инжектировать отдельно)
+    // Бин для Config
     @Bean
     public Config config() {
         try {
@@ -55,21 +42,20 @@ public class WebApplication implements WebMvcConfigurer {
         }
     }
 
-    // Бин для PasswordEncoder (для хэширования паролей)
+    // Бин для PasswordEncoder (единственный)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Вложенная конфигурация Spring Security (можно вынести в отдельный класс SecurityConfig)
+    // Вложенная конфигурация Security (единственная)
     @Configuration
     public static class SecurityConfig {
 
         @Bean
         public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-            // Создаем in-memory пользователей (для простоты). В реальности замените на загрузку из DbManager.
             UserDetails admin = User.withUsername("admin")
-                    .password(passwordEncoder.encode("admin"))  // Хэшируем пароль
+                    .password(passwordEncoder.encode("admin"))
                     .roles("ADMIN")
                     .build();
             UserDetails user = User.withUsername("user")
@@ -83,9 +69,9 @@ public class WebApplication implements WebMvcConfigurer {
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             http
                     .authorizeHttpRequests(authz -> authz
-                            .requestMatchers("/", "/login", "/css/**", "/js/**", "/error").permitAll()  // Публичные страницы
-                            .requestMatchers("/students/**", "/groups/**", "/subjects/**", "/grades/**", "/attendance/**").hasRole("USER")  // Только для USER
-                            .requestMatchers("/admin/**").hasRole("ADMIN")  // Только для ADMIN
+                            .requestMatchers("/", "/login", "/css/**", "/js/**", "/error").permitAll()
+                            .requestMatchers("/students/**", "/groups/**", "/subjects/**", "/grades/**", "/attendance/**").hasRole("USER")
+                            .requestMatchers("/admin/**", "/users/**").hasRole("ADMIN")  // Добавил /users/** для UserController
                             .anyRequest().authenticated()
                     )
                     .formLogin(form -> form
@@ -101,7 +87,7 @@ public class WebApplication implements WebMvcConfigurer {
                     .exceptionHandling(ex -> ex
                             .accessDeniedPage("/access-denied")
                     )
-                    .csrf(csrf -> csrf.disable());  // Отключаем CSRF для простоты (в продакшене включите)
+                    .csrf(csrf -> csrf.disable());  // Отключено для теста; включите позже для продакшена
             return http.build();
         }
 
@@ -111,15 +97,12 @@ public class WebApplication implements WebMvcConfigurer {
         }
     }
 
-    // Глобальный обработчик ошибок (ControllerAdvice)
     @ControllerAdvice
     public static class GlobalExceptionHandler {
-
         @ExceptionHandler(SQLException.class)
         public String handleSQLException(SQLException e) {
-            // Логируем ошибку и перенаправляем на страницу ошибки
             e.printStackTrace();
-            return "error";  // Шаблон error.html в templates
+            return "error";
         }
 
         @ExceptionHandler(Exception.class)

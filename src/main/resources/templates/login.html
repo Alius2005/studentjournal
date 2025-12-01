@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Вход в Журнал Студентов</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <title>Вход в журнал</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" /> <!-- Если у тебя Bootstrap в static/css -->
 </head>
 <body>
-<h1>Добро пожаловать в Журнал Студентов</h1>
-<form th:action="@{/login}" method="post">
-    <div>
-        <label for="username">Логин:</label>
-        <input type="text" id="username" name="username" required>
-    </div>
-    <div>
-        <label for="password">Пароль:</label>
-        <input type="password" id="password" name="password" required>
-    </div>
-    <button type="submit">Войти</button>
-</form>
-<div th:if="${param.error}">Неверный логин или пароль!</div>
+<div class="container mt-5">
+    <h2>Авторизация</h2>
+    <div th:if="${param.error}" class="alert alert-danger">Неверный логин или пароль!</div>
+    <div th:if="${param.logout}" class="alert alert-success">Выход выполнен.</div>
+    <form th:action="@{/login}" method="post">
+        <div class="mb-3">
+            <label for="username" class="form-label">Логин:</label>
+            <input type="text" id="username" name="username" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Пароль:</label>
+            <input type="password" id="password" name="password" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+    <p class="mt-3">Тестовые учётки: admin/admin (ADMIN), user/user (USER).</p>
+</div>
 </body>
 </html>

@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.example.studentjournal.DbManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,8 +16,8 @@ import java.util.Optional;
 @RequestMapping("/students")
 public class StudentController {
 
-    @Autowired
-    private StudentService studentService;
+    @Autowired private DbManager dbManager;
+    @Autowired private StudentService studentService;
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('TEACHER')")
     @GetMapping

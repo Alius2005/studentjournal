@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -22,6 +21,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.userService = userService;
     }
 
+    @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userService.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
@@ -30,7 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getFirstName(),
+                user.getFirstName(),  // <-- Используем firstName как username (если оно уникально)
                 user.getPasswordHash(),
                 authorities
         );

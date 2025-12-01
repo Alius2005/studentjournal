@@ -4,7 +4,7 @@ import org.example.studentjournal.POJO.User;
 import org.example.studentjournal.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +20,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;  // Изменено с BCryptPasswordEncoder на PasswordEncoder для корректной инъекции бина
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
@@ -40,7 +40,11 @@ public class UserController {
     public String getUser(@PathVariable int id, Model model) {
         try {
             Optional<User> user = userService.getUserById(id);
-            model.addAttribute("user", user);
+            if (user.isPresent()) {
+                model.addAttribute("user", user.get());
+            } else {
+                model.addAttribute("error", "User not found");
+            }
             return "users/form";
         } catch (Exception e) {
             model.addAttribute("error", "User not found: " + e.getMessage());
