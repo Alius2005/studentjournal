@@ -53,19 +53,6 @@ public class WebApplication implements WebMvcConfigurer {
     public static class SecurityConfig {
 
         @Bean
-        public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-            UserDetails admin = User.withUsername("admin")
-                    .password(passwordEncoder.encode("admin"))
-                    .roles("ADMIN")
-                    .build();
-            UserDetails user = User.withUsername("user")
-                    .password(passwordEncoder.encode("user"))
-                    .roles("USER")
-                    .build();
-            return new InMemoryUserDetailsManager(admin, user);
-        }
-
-        @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             http
                     .authorizeHttpRequests(authz -> authz

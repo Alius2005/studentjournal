@@ -30,9 +30,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
 
         return new org.springframework.security.core.userdetails.User(
-                user.getFirstName(),  // <-- Используем firstName как username (если оно уникально)
+                user.getFirstName() + " " + user.getLastName(),
                 user.getPasswordHash(),
                 authorities
         );
     }
+
 }

@@ -67,6 +67,6 @@ public class Teacher {
         return department;
     }
     public void setDepartment(String department) {
-        this.department = this.department;
+        this.department = department;
     }
 }
