@@ -2,13 +2,18 @@ package org.example.studentjournal;
 
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import javax.swing.RowFilter;
 import org.example.studentjournal.POJO.*;
 
 public class MainFrame extends JFrame {
@@ -53,6 +58,10 @@ public class MainFrame extends JFrame {
     private JTextField teacherFirstNameField, teacherLastNameField, teacherMiddleNameField;
     private JFormattedTextField teacherPhoneField;
     private JTextField teacherEmailField, teacherDepartmentField;
+
+    // Новые поля для фильтрации
+    private JTextField searchField;
+    private TableRowSorter<DefaultTableModel> sorter;
 
     public MainFrame(DbManager dbManager) {
         this.dbManager = dbManager;
@@ -114,11 +123,25 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         mainPanel.setLayout(cardLayout);
 
-        // Панель таблицы с кнопкой переключения вверху
+        // Панель таблицы с кнопкой переключения и поиском вверху
         tablePanel = new JPanel(new BorderLayout());
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         toggleToolPanelBtn = new JButton("Скрыть панель");
         topPanel.add(toggleToolPanelBtn);
+
+        // Добавляем панель поиска
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        searchPanel.add(new JLabel("Поиск:"));
+        searchField = new JTextField(20);
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                applyFilter();
+            }
+        });
+        searchPanel.add(searchField);
+        topPanel.add(searchPanel);
+
         tablePanel.add(topPanel, BorderLayout.NORTH);
         mainTable = new JTable();
         JScrollPane tableScroll = new JScrollPane(mainTable);
@@ -187,6 +210,7 @@ public class MainFrame extends JFrame {
 
     private void showData() {
         cardLayout.show(mainPanel, "table");
+        searchField.setText(""); // Сброс поиска при смене сущности
         switch (currentEntity) {
             case "students":
                 showStudents();
@@ -209,6 +233,17 @@ public class MainFrame extends JFrame {
             case "teachers":
                 showTeachers();
                 break;
+        }
+    }
+
+    private void applyFilter() {
+        if (sorter != null) {
+            String text = searchField.getText().trim();
+            if (text.isEmpty()) {
+                sorter.setRowFilter(null); // Убираем фильтр, если поле пустое
+            } else {
+                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text)); // (?i) делает поиск нечувствительным к регистру
+            }
         }
     }
 
@@ -304,8 +339,9 @@ public class MainFrame extends JFrame {
 
         JButton saveBtn = new JButton("Сохранить");
 
-        panel.add(new JLabel("Фамилия:")); panel.add(studentFirstNameField);
-        panel.add(new JLabel("Имя:")); panel.add(studentLastNameField);
+        // Исправлено: правильный порядок полей для русских меток (Фамилия - lastName, Имя - firstName)
+        panel.add(new JLabel("Фамилия:")); panel.add(studentLastNameField);
+        panel.add(new JLabel("Имя:")); panel.add(studentFirstNameField);
         panel.add(new JLabel("Отчество:")); panel.add(studentMiddleNameField);
         panel.add(new JLabel("Дата рождения:")); panel.add(studentBirthDateSpinner);
         panel.add(new JLabel("Группа:")); panel.add(studentGroupCombo);
@@ -315,8 +351,9 @@ public class MainFrame extends JFrame {
 
         saveBtn.addActionListener(e -> {
             try {
-                String lastName = studentFirstNameField.getText().trim();
-                String firstName = studentLastNameField.getText().trim();
+                // Исправлено: правильное присвоение
+                String lastName = studentLastNameField.getText().trim();
+                String firstName = studentFirstNameField.getText().trim();
                 String middleName = studentMiddleNameField.getText().trim();
                 Date birthDateUtil = (Date) studentBirthDateSpinner.getValue();
                 LocalDate birthDate = LocalDate.ofInstant(birthDateUtil.toInstant(), ZoneId.systemDefault());
@@ -553,8 +590,9 @@ public class MainFrame extends JFrame {
         teacherDepartmentField = new JTextField();
         JButton saveBtn = new JButton("Сохранить");
 
-        panel.add(new JLabel("Фамилия:")); panel.add(teacherFirstNameField);
-        panel.add(new JLabel("Имя:")); panel.add(teacherLastNameField);
+        // Исправлено: правильный порядок полей для русских меток
+        panel.add(new JLabel("Фамилия:")); panel.add(teacherLastNameField);
+        panel.add(new JLabel("Имя:")); panel.add(teacherFirstNameField);
         panel.add(new JLabel("Отчество:")); panel.add(teacherMiddleNameField);
         panel.add(new JLabel("Email:")); panel.add(teacherEmailField);
         panel.add(new JLabel("Контакт:")); panel.add(teacherPhoneField);
@@ -563,8 +601,9 @@ public class MainFrame extends JFrame {
 
         saveBtn.addActionListener(e -> {
             try {
-                String lastName = teacherFirstNameField.getText().trim();
-                String firstName = teacherLastNameField.getText().trim();
+                // Исправлено: правильное присвоение
+                String lastName = teacherLastNameField.getText().trim();
+                String firstName = teacherFirstNameField.getText().trim();
                 String middleName = teacherMiddleNameField.getText().trim();
                 String email = teacherEmailField.getText().trim();
                 String contact = teacherPhoneField.getText().trim();
@@ -831,13 +870,20 @@ public class MainFrame extends JFrame {
             for (int i = 0; i < students.size(); i++) {
                 Student s = students.get(i);
                 data[i][0] = s.getId();
-                data[i][1] = s.getFirstName() + " " + s.getMiddleName() + " " + s.getLastName();
+                // Изменено: ФИО в формате Фамилия Имя Отчество (стандарт для русского)
+                data[i][1] = s.getLastName() + " " + s.getFirstName() + " " + s.getMiddleName();
                 data[i][2] = s.getBirthDate();
                 data[i][3] = s.getGroupId();
                 data[i][4] = s.getContact();
                 data[i][5] = s.getEmail();
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter(); // Применяем текущий фильтр, если есть
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -856,7 +902,13 @@ public class MainFrame extends JFrame {
                 data[i][3] = g.getTeacher();
                 data[i][4] = g.getSubjects();
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter();
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -874,7 +926,13 @@ public class MainFrame extends JFrame {
                 data[i][2] = s.getTeacher();
                 data[i][3] = s.getSchedule();
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter();
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -894,7 +952,13 @@ public class MainFrame extends JFrame {
                 data[i][4] = g.getGradeValue();
                 data[i][5] = g.getGradeDate();
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter();
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -912,7 +976,13 @@ public class MainFrame extends JFrame {
                 data[i][2] = a.getLessonId();
                 data[i][3] = a.isPresent() ? "Да" : "Нет";
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter();
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -933,7 +1003,13 @@ public class MainFrame extends JFrame {
                 data[i][5] = l.getBuildingNumber();
                 data[i][6] = l.getLessonDate();
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter();
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -947,12 +1023,19 @@ public class MainFrame extends JFrame {
             for (int i = 0; i < teachers.size(); i++) {
                 Teacher t = teachers.get(i);
                 data[i][0] = t.getId();
+                // Изменено: ФИО в формате Фамилия Имя Отчество
                 data[i][1] = t.getLastName() + " " + t.getFirstName() + " " + t.getMiddleName();
                 data[i][2] = t.getEmail();
                 data[i][3] = t.getPhone();
                 data[i][4] = t.getDepartment();
             }
-            mainTable.setModel(new javax.swing.table.DefaultTableModel(data, columnNames));
+            DefaultTableModel model = new DefaultTableModel(data, columnNames);
+            mainTable.setModel(model);
+
+            // Добавляем сортировщик и фильтр
+            sorter = new TableRowSorter<>(model);
+            mainTable.setRowSorter(sorter);
+            applyFilter();
         } catch (SQLException ex) {
             showError(ex);
         }
@@ -962,22 +1045,12 @@ public class MainFrame extends JFrame {
         JOptionPane.showMessageDialog(this, "Ошибка: " + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
     }
 
-    private static class EmailInputVerifier extends javax.swing.InputVerifier {
+    private class EmailInputVerifier extends InputVerifier {
         @Override
         public boolean verify(JComponent input) {
-            String text = ((JTextField) input).getText();
-            if (text.isEmpty()) return true; // Пустой email разрешен, если не требуется
-            String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
-            return text.matches(emailRegex);
-        }
-
-        @Override
-        public boolean shouldYieldFocus(JComponent input) {
-            boolean valid = verify(input);
-            if (!valid) {
-                JOptionPane.showMessageDialog(input.getParent(), "Неверный формат email.", "Ошибка", JOptionPane.ERROR_MESSAGE);
-            }
-            return valid;
+            String email = ((JTextField) input).getText();
+            if (email.isEmpty()) return true; // Пустой email разрешен
+            return email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
         }
     }
 }

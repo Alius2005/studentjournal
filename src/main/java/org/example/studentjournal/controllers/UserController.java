@@ -20,7 +20,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;  // Изменено с BCryptPasswordEncoder на PasswordEncoder для корректной инъекции бина
+    private PasswordEncoder passwordEncoder;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
